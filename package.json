@@ -1,0 +1,21 @@
+{
+  "name": "kosui-slides",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "slidev build",
+    "dev": "slidev --open",
+    "export": "slidev export"
+  },
+  "dependencies": {
+    "@slidev/cli": "0.49.0-beta.6",
+    "@slidev/theme-default": "latest",
+    "@slidev/theme-seriph": "latest",
+    "vue": "3.4.26"
+  },
+  "devDependencies": {
+    "@iconify-json/tabler": "1.1.110",
+    "@iconify-json/vscode-icons": "1.1.33",
+    "@iconify-json/bi": "1.1.33"
+  }
+}
