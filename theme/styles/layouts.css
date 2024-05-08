@@ -142,3 +142,7 @@
     @apply text-6xl font-500 leading-20;
   }
 }
+
+rt {
+  font-size: 0.7em;
+}

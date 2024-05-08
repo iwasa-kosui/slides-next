@@ -82,11 +82,11 @@ layout: cover
 ---
 
 ## 背景
-# SaaSのエンタープライズ対応と<br />Excel一括入稿機能の重要性
+# SaaSのエンタープライズ対応と<br />ファイル一括入稿機能の重要性
 
 ::icon::
 
-<tabler-users class='mr-3' />
+<vscode-icons-file-type-excel2 />
 
 ---
 
@@ -108,7 +108,7 @@ SaaS業界が発展するにつれ、要求される機能や品質も変化し�
 
 ---
 layout: two-cols-header
-layoutClass: "grid-cols-[360px_1fr]"
+layoutClass: "!grid-rows-[60px_1fr] grid-cols-[360px_1fr]"
 ---
 
 # SaaSの組織管理
@@ -138,26 +138,15 @@ layoutClass: "grid-cols-[360px_1fr]"
 <img src='/excel-example.svg' />
 
 ---
-layout: cover
----
-
-## 課題
-# Excel一括入稿機能で<br />正確かつ効率的に検証したい
-
-::icon::
-
-<vscode-icons-file-type-excel2 class='mr-3' />
-
----
 layout: two-cols-header
 layoutClass: "!grid-cols-[360px_1fr]"
 ---
 
-# _ユーザー_ から見た一括入稿のつらさ
+# _ユーザー_ から見た<vscode-icons-file-type-excel2 />ファイル一括入稿のつらさ
 
 ::left::
 
-<img src=/bulk-import-flow.svg />
+<img src=/bulk-import-flow.svg style='width: 320px' />
 
 ::right::
 
@@ -176,60 +165,51 @@ layoutClass: "!grid-cols-[360px_1fr]"
 ▶ 何度も修正と再入稿を繰り返す
 
 ---
+layout: cover
+---
 
-# 表形式データの検証の流れ
+## 課題
+# 表形式データの検証<br/>正確性と効率性を阻む２つの壁
+
+::icon::
+
+😭
+
+---
+
+# 表形式データの検証の3ステップ
 
 <img src="/parse-flow.svg" />
 
 ---
-layout: two-cols-header
-layoutClass: "!grid-rows-[90px_1fr] !grid-cols-[480px_1fr]"
----
 
-### 一括入稿の難しさ①
-# エラーの一括返却
-
-例) 異なるステップで失敗する3行を含む表を入稿
-
-::left::
+### 表形式データ検証の壁①
+# 表形式データのエラーハンドリング
 
 <img src="/parse-flow-error.svg" />
 
 ::right::
 
-### 理想
+## 理想
 
 各ステップで検証に成功した行のみ  
 次の検証ステップに進めて  
 エラーを極力まとめて出力したい
 
-### ナイーブな実装の場合
+## ナイーブな実装の場合
 
 各ステップで不正が検出されたら  
-例外を発生させる
-
-例)「不正な日付」で中断され  
-「重複ID」や「店舗IDの不存在」を  
-含めて一度に返却できない
+例外を発生させ _処理を中断_ する
 
 ---
-layout: two-cols-header
-layoutClass: "!grid-rows-[90px_1fr] !grid-cols-[480px_1fr]"
----
 
-### 一括入稿の難しさ②
-# シート間の依存関係
+### 表形式データ検証の壁②
+# 依存関係の解決
 
-::left::
+組織の階層構造を表現するために、ある行が他シートの行を参照する  
+例) ユーザーの所属を表現するため店舗シートを参照
 
 <img src="/dep.svg" />
-
-::right::
-
-## 複雑な参照
-
-組織の階層構造を表現するために  
-セル、行、シート間に依存関係がある
 
 ---
 layout: cover
@@ -243,11 +223,17 @@ layout: cover
 <fp-ts />
 
 ---
+layout: two-cols-header
+layoutClass: "!grid-rows-[90px_1fr]"
+---
 
-### TypeScriptのエラーハンドリング①
-# カスタムエラー
+# TypeScriptのエラーハンドリング
 
-<div class="grid grid-cols-2 mb-4 gap-4">
+まずはよく知られたエラーハンドリングの手法をおさらい
+
+::left::
+
+## ユーザー定義の例外をthrowする
 
 ```ts
 class MyError extends Error {
@@ -258,25 +244,397 @@ class MyError extends Error {
 }
 ```
 
-</div>
+::right::
 
----
-
-### TypeScriptのエラーハンドリング②
-# Result型
-
-<div class="grid grid-cols-2 mb-4 gap-4">
+## Result型を返す
 
 ```ts
 type Result<T, E> = Ok<T> | Err<E>;
+
 type Ok<T> = Readonly<{
   ok: true;
   val: T;
 }>;
+
 type Err<E> = Readonly<{
   ok: false;
   err: E;
 }>;
 ```
 
+---
+
+### TypeScriptのエラーハンドリング①
+# ユーザー定義の例外をthrowする
+
+<div class="grid grid-cols-2 mb-4 gap-4 !grid-cols-[520px_1fr]">
+
+```ts
+class ParseError extends Error {
+  constructor(readonly row: number, msg?: string) {
+    //                 ^^^ 行番号を持たせる
+    super(msg);
+    this.name = "ParseError";
+  }
+}
+```
+
+<div>
+
+`Error` を拡張したクラスを定義する
+
+- エラー原因の情報を追加できる
+- 古くからある実績ある手法
+
 </div>
+</div>
+
+<div class="grid grid-cols-2 mb-4 gap-4 !grid-cols-[520px_1fr]">
+
+```ts
+if (err instanceof ParseError) {
+  console.error(err.row)
+}
+```
+
+<div>
+
+`instanceof` 演算子により  
+エラーを識別できる
+
+</div>
+</div>
+
+---
+
+# 😭 「ユーザー定義の例外をthrowする」場合の悩み
+
+## 複数のエラーを同時に伝搬しづらい
+
+<div class="grid grid-cols-2 mb-4 gap-4 !grid-cols-[490px_1fr]">
+
+```ts
+const parseUserRow = (cells: string[]) => ({
+  id: parseUserId(cells[0]),        // 💥throw err
+  name: parseUsername(cells[1]),    // 👋bye err
+  birthday: parseBirthday(cell[2]), // 👋bye err
+});
+```
+
+<div class="-my-3">
+
+ある行のパース時に  
+複数のセルのパースに失敗
+
+`parseUserId` が例外を投げてしまうと  
+他のセルの検証エラーをクライアントへ  
+返せないまま処理が中断
+
+</div>
+
+</div>
+
+<div class="grid grid-cols-2 mb-4 gap-4 !grid-cols-[490px_1fr]">
+
+```ts
+const errors: Error = [];
+let id: string;
+try {
+  id = parseUserId(cells[0]);
+} catch(e) {
+  errors.push(e);
+}
+// ...
+```
+
+<div class="-my-3">
+
+try...catch文で頑張れば出来なくはない  
+
+しかし、流石にこれはつらい
+
+</div>
+
+</div>
+
+<style scoped>
+pre {
+  height: 100%;
+}
+</style>
+
+---
+
+### TypeScriptのエラーハンドリング②
+# Result型を返す
+
+<div class="grid grid-cols-2 mb-4 gap-4 !grid-cols-[500px_1fr]">
+
+```ts
+type Result<T, E> = Ok<T> | Err<E>;
+
+type Ok<T> = Readonly<{ ok: true; val: T; }>;
+
+type Err<E> = Readonly<{ ok: false; err: E; }>;
+```
+
+<div>
+
+<ruby>判別可能な<rt>Discriminated</rt></ruby>Union型を用いて  
+成功した場合と失敗した場合を表現
+
+</div>
+</div>
+
+<div class="grid grid-cols-2 mb-4 gap-4 !grid-cols-[500px_1fr]">
+
+```ts
+declare const result: Result<string, ParseError>;
+if (result.ok) {
+  console.log(result.val);
+} else {
+  // OK
+  console.error(result.err);
+  // Property 'val' does not exist...
+  console.log(result.val);
+}
+```
+
+<div>
+
+- 失敗する可能性を型で表現できる
+- `ok` プロパティを見れば  
+  型の絞り込みができる
+
+</div>
+</div>
+
+---
+
+# 👏 Result型なら複数のエラーを同時に伝搬できる 
+
+<div class="grid grid-cols-2 mb-4 gap-4 !grid-cols-[450px_1fr]">
+
+```ts
+declare const parseUserId:
+  (v: string) => Result<string, ParseError>;
+
+declare const parseUsername:
+  (v: string) => Result<string, ParseError>;
+```
+
+<div class="-my-3">
+
+それぞれのセルのパース関数が `Result<string, ParseError>` を返す
+
+</div>
+</div>
+
+<div class="grid grid-cols-2 mb-4 gap-4 !grid-cols-[450px_1fr]">
+
+```ts
+const parseUserRow = (cells: string[]) => ({
+  id: parseUserId(cells[0]),     // Err
+  name: parseUsername(cells[1]), // Err
+});
+```
+
+<div class="-my-3">
+
+IDと名前の両方のセルで  
+パースに失敗した場合も...
+
+</div>
+</div>
+
+<div class="grid grid-cols-2 mb-4 gap-4 !grid-cols-[450px_1fr]">
+
+```ts
+console.log(parseUserRow(['bad', 'bad']));
+// {
+//   id: { err: ... },
+//   name: { err: ... },
+// }
+```
+
+<div class="-my-3">
+
+👏両方のセルのエラーを伝搬できる
+
+</div>
+</div>
+
+---
+
+# エラーを合成したい
+
+<div class="grid grid-cols-2 mb-4 gap-4 !grid-cols-[400px_1fr] mb-8">
+
+<div>
+
+```ts
+// セル
+const id: Result<string, ParseError>;
+const name: Result<string, ParseError>;
+
+// 行
+const row: Result<
+  { id: string; name: string; },
+  ParseError[],
+>;
+```
+</div>
+
+<div>
+
+## 各セルを行へ合成したい
+
+それぞれの行について  
+
+❌ 1つ以上のセルの検証に失敗したら  
+その行自体の検証を失敗としたい
+
+✅ 全てのセルの検証に成功したら  
+その行自体の検証を成功としたい
+
+</div>
+</div>
+
+<div class="grid grid-cols-2 mb-4 gap-4 !grid-cols-[400px_1fr] mb-8">
+
+<div>
+
+```ts
+const errs: ParseError[] = [];
+if (!id.ok) errs.push(id.err);
+if (!name.ok) errs.push(name.err);
+if (errs) return errs;
+// ...
+```
+</div>
+
+<div>
+
+## 😭 自前実装はつらい
+
+そんな時に <fp-ts /> fp-ts
+
+</div>
+</div>
+
+---
+
+### fp-tsによるエラー合成
+# オブジェクトのエラー合成
+
+<div class="grid grid-cols-2 mb-4 gap-4 !grid-cols-[640px_1fr] mb-8">
+
+<div>
+
+```ts
+import * as AP from 'fp-ts/Apply';
+import * as A from 'fp-ts/Array';
+import * as E from 'fp-ts/Either';
+import { pipe } from 'fp-ts/function';
+
+const id: E.Either<string, ParseError[]>;
+const name: E.Either<string, ParseError[]>;
+
+const ap = E.getApplicativeValidation(A.getSemigroup<string>());
+
+// E.Either<{ id: string; name: string; }, ParseError[]>
+const eitherUser = AP.sequenceS(ap)({ id, name });
+```
+
+</div>
+
+</div>
+
+---
+
+### fp-tsによるエラー合成
+# 配列のエラー合成
+
+<div class="grid grid-cols-2 mb-4 gap-4 !grid-cols-[640px_1fr] mb-8">
+
+<div>
+
+```ts
+import * as AP from 'fp-ts/Apply';
+import * as A from 'fp-ts/Array';
+import * as E from 'fp-ts/Either';
+import { pipe } from 'fp-ts/function';
+
+const ap = E.getApplicativeValidation(A.getSemigroup<string>());
+
+type User = { id: string; name: string; };
+const rows: Array<E.Either<ParseError[], User>>;
+
+// E.Either<ParseError[], User[]>;
+const eitherUsers = A.sequence(ap)(rows);
+```
+
+</div>
+
+</div>
+
+---
+
+# エラー合成
+
+---
+
+# 他ライブラリとの比較
+
+## neverthrow/option-t
+
+Result/Optionを提供することに特化
+
+## Effect
+
+将来的なfp-tsの乗り換え先として有力
+
+---
+layout: cover
+---
+
+# fp-tsのチーム活用
+
+::icon::
+
+<fp-ts />
+
+---
+
+# fp-tsの難しさ
+
+## コンセプト
+
+関数型プログラミングのためのユーティリティ
+
+## 難点
+
+- 非常に抽象度が高い  
+  ドキュメントも抽象度が高い
+- 日本語の情報が少ない
+- 業務での実用例の解説が少ない
+
+---
+
+## チームでfp-tsを利用するために①
+# プロジェクトで利用するものを限定する
+
+- pipe/flow
+- Either/Option
+- Task/TaskEither
+
+---
+
+## チームでfp-tsを利用するために②
+# ペアプロ・モブプロの活用
+
+---
+
+## チームでfp-tsを利用するために③
+# 社内向けレシピ集
+
