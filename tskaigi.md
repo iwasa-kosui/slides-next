@@ -539,6 +539,9 @@ const ap = E.getApplicativeValidation(
 ```
 
 <div>
+  
+Leftに積まれたParseError[]を結合するapを定義
+
 </div>
 </div>
 
@@ -551,12 +554,17 @@ const name: E.Either<string, ParseError[]>;
 
 type User = { id: string; name: string; };
 
-// E.Either<User, ParseError[]>;
+// E.Either<ParseError[], User>
 const eitherUser = AP.sequenceS(ap)({ id, name });
 ```
 
 </div>
 <div>
+
+先ほど定義したapを用いて
+各プロパティのResultを合成
+成功: User
+失敗: ParseError[]
 
 </div>
 </div>
