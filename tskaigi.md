@@ -527,27 +527,38 @@ if (errs) return errs;
 ### fp-tsによるエラー合成
 # オブジェクトのエラー合成
 
-<div class="grid grid-cols-2 mb-4 gap-4 !grid-cols-[640px_1fr] mb-8">
-
-<div>
+<div class="grid grid-cols-2 mb-4 gap-4 !grid-cols-[500px_1fr]">
 
 ```ts
 import * as AP from 'fp-ts/Apply';
 import * as A from 'fp-ts/Array';
 import * as E from 'fp-ts/Either';
-import { pipe } from 'fp-ts/function';
+const ap = E.getApplicativeValidation(
+  A.getSemigroup<string>(),
+);
+```
 
+<div>
+</div>
+</div>
+
+<div class="grid grid-cols-2 mb-4 gap-4 !grid-cols-[500px_1fr] mb-4">
+<div>
+
+```ts
 const id: E.Either<string, ParseError[]>;
 const name: E.Either<string, ParseError[]>;
 
-const ap = E.getApplicativeValidation(A.getSemigroup<string>());
+type User = { id: string; name: string; };
 
-// E.Either<{ id: string; name: string; }, ParseError[]>
+// E.Either<User, ParseError[]>;
 const eitherUser = AP.sequenceS(ap)({ id, name });
 ```
 
 </div>
+<div>
 
+</div>
 </div>
 
 ---
@@ -555,19 +566,11 @@ const eitherUser = AP.sequenceS(ap)({ id, name });
 ### fp-tsによるエラー合成
 # 配列のエラー合成
 
-<div class="grid grid-cols-2 mb-4 gap-4 !grid-cols-[640px_1fr] mb-8">
+<div class="grid grid-cols-2 mb-4 gap-4 !grid-cols-[500px_1fr] mb-4">
 
 <div>
 
 ```ts
-import * as AP from 'fp-ts/Apply';
-import * as A from 'fp-ts/Array';
-import * as E from 'fp-ts/Either';
-import { pipe } from 'fp-ts/function';
-
-const ap = E.getApplicativeValidation(A.getSemigroup<string>());
-
-type User = { id: string; name: string; };
 const rows: Array<E.Either<ParseError[], User>>;
 
 // E.Either<ParseError[], User[]>;
@@ -580,15 +583,12 @@ const eitherUsers = A.sequence(ap)(rows);
 
 ---
 
-# エラー合成
-
----
-
 # 他ライブラリとの比較
 
 ## neverthrow/option-t
 
-Result/Optionを提供することに特化
+Result/Optionを提供することに特化  
+合成機能は提供していない
 
 ## Effect
 
