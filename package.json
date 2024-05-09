@@ -16,6 +16,6 @@
   "devDependencies": {
     "@iconify-json/tabler": "1.1.110",
     "@iconify-json/vscode-icons": "1.1.33",
-    "@iconify-json/bi": "1.1.33"
+    "@iconify-json/bi": "1.1.23"
   }
 }
