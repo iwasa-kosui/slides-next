@@ -63,10 +63,10 @@ layoutClass: "!grid-cols-[300px_1fr]"
 # 目次
 
 1. 背景  
-   SaaSのエンタープライズ対応と<br />
+   SaaSのエンタープライズ対応と
    <vscode-icons-file-type-excel2 />Excel一括入稿機能の重要性
 1. 課題<br />
-   <vscode-icons-file-type-excel2 />Excel一括入稿機能で<br />
+   <vscode-icons-file-type-excel2 />Excel一括入稿機能で 
    _正確_ かつ _効率的_ に検証したい
 1. fp-tsによるエラー合成
 1. fp-tsのチーム活用
