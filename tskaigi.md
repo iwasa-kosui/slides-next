@@ -89,17 +89,24 @@ layout: cover
 <vscode-icons-file-type-excel2 />
 
 ---
+layout: two-cols-header
+layoutClass: "!grid-rows-[120px_1fr]"
+---
 
 # SaaS (Software as a Service) の発展と変化
 
 SaaS業界が発展するにつれ、要求される機能や品質も変化している
 
-## 個人・中小企業などスモールビジネス向け
+::left::
 
-- 差別化につながる機能
-- 安心して長期利用できるランニングコスト
+## 個人・中小企業向け
 
-## 大企業や行政などエンタープライズ向け
+- 差別化につながる先進的な機能・品質
+- 安心して長期利用できるプライシング
+
+::right::
+
+## 大企業・行政向け
 
 - 誰でも使える明快さ
 - 上場企業も安心して使えるコンプライアンス
@@ -115,7 +122,7 @@ layoutClass: "!grid-rows-[60px_1fr] grid-cols-[360px_1fr]"
 
 ::left::
 
-## スモールビジネス
+## 個人・中小企業向け
 
 ### データは _少量_ で構造も _シンプル_
 
@@ -127,7 +134,7 @@ layoutClass: "!grid-rows-[60px_1fr] grid-cols-[360px_1fr]"
 
 ::right::
 
-## エンタープライズ
+## 大企業・行政向け
 
 ### データが _大量_ で _階層的_
 
@@ -153,7 +160,7 @@ layoutClass: "!grid-cols-[360px_1fr]"
 ## 不明瞭なフィードバック
 
 エラーの原因が判別しにくい  
-▶ 修正作業は多大な時間と労力を伴う
+➡ 修正作業は多大な時間と労力を伴う
 
 - 修正する箇所(セル)が不明瞭
 - 修正する理由が不明瞭  
@@ -162,7 +169,7 @@ layoutClass: "!grid-cols-[360px_1fr]"
 ## 繰り返される再入稿
 
 全てのエラーが一度に返却されない  
-▶ 何度も修正と再入稿を繰り返す
+➡ 何度も修正と再入稿を繰り返す
 
 ---
 layout: cover
@@ -204,12 +211,24 @@ layout: cover
 ---
 
 ### 表形式データ検証の壁②
-# 依存関係の解決
+# 依存関係の安全な解決
 
 組織の階層構造を表現するために、ある行が他シートの行を参照する  
 例) ユーザーの所属を表現するため店舗シートを参照
 
-<img src="/dep.svg" />
+<Grid width='500px'>
+
+![](/dep.svg)
+
+<div>
+
+😱検証済みの行を参照したいのに  
+未検証の行を参照してしまった
+
+➡ 型検査で未然に防ぎたい
+
+</div>
+</Grid>
 
 ---
 layout: cover
@@ -468,7 +487,7 @@ console.log(parseUserRow(['bad', 'bad']));
 
 # エラーを合成したい
 
-<div class="grid grid-cols-2 mb-4 gap-4 !grid-cols-[400px_1fr] mb-8">
+<Grid width=400px>
 
 <div>
 
@@ -487,7 +506,7 @@ const row: Result<
 
 <div>
 
-## 各セルを行へ合成したい
+## セルの配列をシートへ合成したい
 
 それぞれの行について  
 
@@ -498,9 +517,9 @@ const row: Result<
 その行自体の検証を成功としたい
 
 </div>
-</div>
+</Grid>
 
-<div class="grid grid-cols-2 mb-4 gap-4 !grid-cols-[400px_1fr] mb-8">
+<Grid width=400px>
 
 <div>
 
@@ -517,17 +536,17 @@ if (errs) return errs;
 
 ## 😭 自前実装はつらい
 
-そんな時に <fp-ts /> fp-ts
+➡ そんな時に <fp-ts /> fp-ts
 
 </div>
-</div>
+</Grid>
 
 ---
 
 ### fp-tsによるエラー合成
 # オブジェクトのエラー合成
 
-<div class="grid grid-cols-2 mb-4 gap-4 !grid-cols-[500px_1fr]">
+<Grid width='500px'>
 
 ```ts
 import * as AP from 'fp-ts/Apply';
@@ -540,12 +559,13 @@ const ap = E.getApplicativeValidation(
 
 <div>
   
-Leftに積まれたParseError[]を結合するapを定義
+`Left` に積まれた `ParseError[]` を  
+結合する関数 `ap` を定義
 
 </div>
-</div>
+</Grid>
 
-<div class="grid grid-cols-2 mb-4 gap-4 !grid-cols-[500px_1fr] mb-4">
+<Grid width='500px'>
 <div>
 
 ```ts
@@ -561,20 +581,23 @@ const eitherUser = AP.sequenceS(ap)({ id, name });
 </div>
 <div>
 
-先ほど定義したapを用いて
-各プロパティのResultを合成
-成功: User
-失敗: ParseError[]
+先ほど定義した  `ap` を用いて  
+各プロパティのEitherを合成
+
+- 成功: `User`
+- 失敗: `ParseError[]`
 
 </div>
-</div>
+</Grid>
 
 ---
 
 ### fp-tsによるエラー合成
 # 配列のエラー合成
 
-<div class="grid grid-cols-2 mb-4 gap-4 !grid-cols-[500px_1fr] mb-4">
+行の配列をシートへ合成したい
+
+<Grid width='500px'>
 
 <div>
 
@@ -587,20 +610,12 @@ const eitherUsers = A.sequence(ap)(rows);
 
 </div>
 
+<div>
+
+
+
 </div>
-
----
-
-# 他ライブラリとの比較
-
-## neverthrow/option-t
-
-Result/Optionを提供することに特化  
-合成機能は提供していない
-
-## Effect
-
-将来的なfp-tsの乗り換え先として有力
+</Grid>
 
 ---
 layout: cover
