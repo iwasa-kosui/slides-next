@@ -2,6 +2,10 @@
   background: #424242;
 }
 
+#slide-container {
+  background: #ddd;
+}
+
 .slidev-layout {
   @apply text-xl;
 
@@ -14,6 +18,16 @@
   table + h2 {
     @apply mt-8;
   }
+  
+  h2 + p,
+  h3 + p {
+    @apply mt-0;
+  }
+
+  h3:has(+ h1) {
+    font-weight: normal;
+    color: #636363;
+  } 
 
   .slidev-code-wrapper + h2,
   .slidev-code-wrapper + h3,
@@ -145,4 +159,10 @@
 
 rt {
   font-size: 0.7em;
+}
+
+.slidev-layout blockquote {
+  font-size: 20px;
+  margin-bottom: 32px;
+  border: none !important;
 }

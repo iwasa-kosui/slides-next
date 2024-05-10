@@ -1,9 +1,9 @@
 :root {
   --slidev-code-font-size: 16px;
-  --slidev-code-line-height: 1.5rem;
+  --slidev-code-line-height: 24px;
   --slidev-code-font-family: 'Moralerspace Neon', 'Moralerspace';
-  --slidev-code-background: #1b1b1b;
-  --slidev-code-color: #f5f5f5;
+  --slidev-code-background: hsl(0, 0%, 93%);
+  --slidev-code-color: #424242;
 }
 
 .slidev-code {

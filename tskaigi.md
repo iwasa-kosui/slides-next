@@ -10,7 +10,7 @@ info: |
 class: text-center
 highlighter: shiki
 drawings:
-  persist: false
+  persist: true
 mdc: true
 ---
 
@@ -244,113 +244,74 @@ layout: cover
 <fp-ts />
 
 ---
-layout: two-cols-header
-layoutClass: "!grid-rows-[120px_1fr]"
----
 
 # TypeScriptのエラー処理
 
-まずはよく知られたエラー処理の手法をおさらい
-
-::left::
-
-## ユーザー定義エラーをthrowする
+<div class="grid grid-cols-2 gap-4">
 
 ```ts
-class MyError extends Error {
-  constructor(message) {
-    super(message);
-    this.name = "MyError";
+class ParseError extends Error {
+  readonly row: number;
+  constructor(row: number, msg: string) {
+    super(msg);
+    this.name = "ParseError";
+    this.row = row;
   }
 }
 ```
 
-::right::
+<div class='my-1'>
 
-## Either型(Result型)で返す
+## ユーザー定義エラーを投げる
+
+`Error` オブジェクトを拡張し  
+様々な情報を追加する
+
+`instanceof` で型を絞り込める
+
+</div>
+</div>
+
+<div class='grid grid-cols-2 gap-4 mt-4'>
 
 ```ts
 type Either<E, A> = Left<E> | Right<A>;
 
-type Left<T> = Readonly<{
-  tag: 'Left';
-  left: T;
-}>;
+type Left<T> =
+  Readonly<{ _tag: 'Left'; left: T; }>;
 
-type Right<A> = Readonly<{
-  tag: 'Right';
-  right: A;
-}>;
-```
-
----
-
-### TypeScriptのエラー処理①
-# ユーザー定義エラーをthrowする
-
-<div class="grid grid-cols-2 mb-4 gap-4 !grid-cols-[520px_1fr]">
-
-```ts
-class ParseError extends Error {
-  constructor(readonly row: number, msg?: string) {
-    //                 ^^^ 行番号を持たせる
-    super(msg);
-    this.name = "ParseError";
-  }
-}
-```
-
-<div>
-
-`Error` を拡張したクラスを定義する
-
-- エラー原因の情報を追加できる
-
-</div>
-</div>
-
-<div class="grid grid-cols-2 mb-4 gap-4 !grid-cols-[520px_1fr]">
-
-```ts
-throw new ParseError(1);
+type Right<A> =
+  Readonly<{ _tag: 'Right'; right: A; }>;
 ```
 
 <div class='my-1'>
 
-- 例外としてthrowする
+## Either型 (Result型) で返す
 
-</div>
-</div>
+<ruby>判別可能な直和型<rt>Discriminated Union</rt></ruby>で  `Left` ・ `Right` の  
+いずれかを取る値を表現
 
-<div class="grid grid-cols-2 mb-4 gap-4 !grid-cols-[520px_1fr]">
-
-```ts
-if (err instanceof ParseError) {
-  console.error(err.row)
-}
-```
-
-<div class='my-1'>
-
-- `instanceof` 演算子により  
-エラーを識別できる
+`Left`で失敗、`Right`で成功を表現し  
+例外を投げずに結果を返す
 
 </div>
 </div>
 
 ---
 
-# 😭 例外をthrowする場合の悩み
+### TypeScriptのエラー処理
+
+# 例外を投げる場合の悩み😭
 
 ## 複数のエラーを同時に伝搬しづらい
 
-<div class="grid grid-cols-2 mb-4 gap-4 !grid-cols-[490px_1fr]">
+<div class='grid grid-cols-2 gap-4'>
 
 ```ts
-const parseUserRow = (cells: string[]) => ({
-  id: parseUserId(cells[0]),        // 💥throw err
-  name: parseUsername(cells[1]),    // 👋bye err
-  birthday: parseBirthday(cell[2]), // 👋bye err
+const parseRow = (cells: string[]) => ({
+  id: parseUserId(cells[0]),   
+  name: parseUsername(cells[1]),
+  birthday: parseBirthday(cell[2]),
 });
 ```
 
@@ -363,24 +324,24 @@ const parseUserRow = (cells: string[]) => ({
 </div>
 </div>
 
-<div class="grid grid-cols-2 mb-4 gap-4 !grid-cols-[490px_1fr]">
+<div class='grid grid-cols-2 gap-4'>
 
 ```ts
-const errors: Error = [];
-let id: string;
+const errors: Error[] = [];
+let id: number;
 try {
   id = parseUserId(cells[0]);
 } catch(e) {
   errors.push(e);
 }
-// ...
 ```
 
 <div class="-my-3">
 
-try...catch文で頑張れば出来なくはない  
+try...catch文で拾って  
+配列に詰めていけば不可能ではない
 
-しかし、流石にこれはつらい
+しかし、流石にこれはつらい😭
 
 </div>
 
@@ -394,135 +355,55 @@ pre {
 
 ---
 
-### TypeScriptのエラー処理②
+### TypeScriptのエラー処理
 # Either型(Result型)
 
-<div class="grid grid-cols-2 mb-4 gap-4 !grid-cols-[450px_1fr]">
+<div class='grid grid-cols-2 gap-4'>
 
 ```ts
 type Either<E, A> = Left<E> | Right<A>;
 
-type Left<T> = Readonly<{
-  tag: 'Left';
-  left: T;
-}>;
+type Left<T> =
+  Readonly<{ _tag: 'Left'; left: T; }>;
 
-type Right<A> = Readonly<{
-  tag: 'Right';
-  right: A;
-}>;
+type Right<A> =
+  Readonly<{ _tag: 'Right'; right: A; }>;
 ```
 
 <div>
 
-<ruby>判別可能な<rt>Discriminated</rt></ruby>Union型を用いて  
+判別可能なユニオン型を用いて  
 `Left` と `Right` のどちらかを取る値を表す
 
 ### エラー処理に使う場合
-- `Left` の場合をエラー  
-- `Right` の場合を成功  
-
-と表現できる
+`Left` の場合をエラー  
+`Right` の場合を成功と表現できる
 
 </div>
 </div>
 
 ---
 
-### TypeScriptのエラー処理②
+### TypeScriptのエラー処理
 # Either型(Result型)で返す
 
-<div class="grid grid-cols-2 mb-4 gap-4 !grid-cols-[420px_1fr]">
-
 ```ts
-const isLeft = <E, A>(e: Either<E, A>) =>
-  e.tag === 'Left';
-  
-const left = <E>(v: E): Left<E> => ({
-  tag: 'Left',
-  left: v,
+const isRight = <E, A>(e: Either<E, A>) => e.tag === 'Right';
+const isLeft = <E, A>(e: Either<E, A>) => e.tag === 'Left';
+
+const right = <A>(val: A): Right<A> => ({ tag: 'Right', left: val });
+const left = <E>(val: E): Left<E> => ({ tag: 'Left', left: val });
+
+const parseUsername = (v: string): Either<ParseError, string> =>
+  v.length > 0 && v.length < 16 ? right(v) : left(new ParserError());
+
+const parseRow = (cells: string[]) => ({
+  id: parseUserId(cells[0]),
+  name: parseUsername(cells[1]),
 });
+
+console.log(parseRow([NaN, '😭']));
 ```
-<div>
-
-- `isLeft`  
-  `tag` プロパティで型の絞り込みが可能
-- `left`  
-  `Left` や `Right` の値を作る  
-  ユーティリティを定義すると便利
-
-</div>
-</div>
-
-```ts
-const parseName: (v: string):
-  Result<ParseError, string> =>
-    v.length > 0 && v.length < 16
-    ? right(v)
-    : left(v)
-```
-
-
----
-
-# Either型を用いたエラーの伝搬
-
-<div class="grid grid-cols-2 mb-4 gap-4 !grid-cols-[440px_1fr]">
-
-```ts
-declare const parseUserId:
-  (v: string) => Either<ParseError, string>;
-
-declare const parseUsername:
-  (v: string) => Either<ParseError, string>;
-```
-
-<div class="-my-3">
-
-それぞれのセルのパース関数が `Either<ParseError, string>` を返す
-
-</div>
-</div>
-
-<div class="grid grid-cols-2 mb-4 gap-4 !grid-cols-[440px_1fr]">
-
-```ts
-const parseUserRow = (cells: string[]) => ({
-  id: parseUserId(cells[0]),     // Left
-  name: parseUsername(cells[1]), // Left
-});
-```
-
-<div class="-my-3">
-
-IDと名前の両方のセルで  
-パースに失敗した場合も...
-
-</div>
-</div>
-
-<div class="grid grid-cols-2 mb-4 gap-4 !grid-cols-[440px_1fr]">
-
-```ts
-console.log(parseUserRow(['bad', 'bad']));
-// {
-//   id: { left: ... },
-//   name: { left: ... },
-// }
-```
-
-<div class="-my-3">
-
-👏両方のセルのエラーを伝搬できる
-
-</div>
-</div>
-
----
-
-# それぞれのセルを行へ合成したい
-
-![](/col-to-row.svg)
 
 ---
 
@@ -567,9 +448,9 @@ left([
 
 ```ts
 right({
-  id: right(1),
-  name: right('田中'),
-  storeId: right(22),
+  id: 1,
+  name: '田中',
+  storeId: 22,
 });
 ```
 
@@ -579,12 +460,12 @@ right({
 
 # それぞれのセルを行へ合成したい
 
-<div class="grid grid-cols-2 mb-4 gap-4 !grid-cols-[380px_1fr]">
+<div class="grid grid-cols-[350px_1fr] mb-4 gap-4">
 
 ```ts
 const errs: ParseError[] = [];
 if (isLeft(id)) {
-  errs.push(id.left);
+ errs.push(id.left);
 }
 if (isLeft(name)) {
   errs.push(name.left);
@@ -599,7 +480,7 @@ assert(isRight(name));
 return right({
   id: id.right,
   name: name.right;
-})
+});
 ```
 
 <div>
@@ -608,7 +489,7 @@ return right({
 
 ### いずれかのセルが `Left` の場合
 
-エラーを取り出して配列に詰め
+エラーを取り出して配列に詰め  
 `Left<ParseError[]>` として返す
 
 ### 全てのセルが `Right` の場合
@@ -625,64 +506,36 @@ return right({
 
 ---
 
-<Arrow x1="420" y1="180" x2="450" y2="180" width=2 />
-
 ### それぞれのセルを行へ合成したい
 # fp-tsによるオブジェクトのエラー合成
-
-<div class="grid grid-cols-2 mb-4 gap-4 !grid-cols-[350px_350px] gap-x-[60px]">
-
-```ts
-const cells = {
-  id: left([new ParseError(1)]),
-  name: left([new ParseError(1)]),
-};
-```
-
-```ts
-type Row = Either<ParseError[], {
-  id: string,
-  name: string,
-}>;
-```
-
-</div>
-
-<Grid width='420px'>
 
 ```ts
 import * as AP from 'fp-ts/Apply';
 import * as A from 'fp-ts/Array';
 import * as E from 'fp-ts/Either';
+
+// これを合成したい
+const cells = {
+  id: left([new ParseError(1, 'ID')]),
+  name: left([new ParseError(1, '名前')]),
+  storeId: right(22),
+};
+
+// 1. `Left` の `ParseError[]` を結合する関数 `ap` を定義
 const ap = E.getApplicativeValidation(
   A.getSemigroup<string>(),
 );
+
+// 2. 先ほど定義した `ap` を用いて合成
+const row = AP.sequenceS(ap)(cells);
 ```
 
-<div>
-  
-1. `Left` の `ParseError[]` を  
-結合する関数 `ap` を定義
-
-</div>
-</Grid>
-
-<Grid width='420px'>
-<div>
-
-```ts
-// 行へ合成
-const row: Row = AP.sequenceS(ap)(cells);
-```
-
-</div>
-<div class='-my-2'>
-
-2. 先ほど定義した  `ap` を用いて  
-`Record<string, Either<>>` を合成できる
-
-</div>
-</Grid>
+<style scoped>
+.slidev-layout {
+  --slidev-code-font-size: 14px;
+  --slidev-code-line-height: 21px;
+}
+</style>
 
 ---
 
@@ -692,14 +545,8 @@ const row: Row = AP.sequenceS(ap)(cells);
 
 ---
 
-<Arrow x1="495" y1="240" x2="525" y2="240" width=2 />
-
 ### fp-tsによるエラー合成
 # 配列のエラー合成
-
-## やりたいこと
-
-<div class="grid grid-cols-2 mb-4 gap-4 !grid-cols-[425px_350px] gap-x-[60px]">
 
 ```ts
 const rows = [
@@ -710,35 +557,10 @@ const rows = [
   }),
   left([new ParseError(3)]),
 ];
-```
 
-```ts
-const sheet = left([
-  new ParseError(1),
-  new ParseError(3),
-]);
-```
-
-</div>
-
-## 実現方法
-
-<Grid width='420px'>
-<div>
-
-```ts
 // 行へ合成
-const sheet: Row = A.sequence(ap)(rows);
+const sheet = A.sequence(ap)(rows);
 ```
-
-</div>
-<div class='-my-2'>
-
-先ほど定義した  `ap` を用いて  
-`Either` の配列を合成できる🎉
-
-</div>
-</Grid>
 
 ---
 
@@ -749,19 +571,17 @@ const sheet: Row = A.sequence(ap)(rows);
 
 ```ts
 import { pipe } from 'fp-ts/function';
+const raw = [
+  [right(1), right('田中'), right(22)],
+  [right(2), right('山田'), right(33)],
+];
+
 pipe(
-  [
-    {
-      id: left([new ParseError(1)]),
-      name: left([new ParseError(1)]),
-    },
-    {
-      id: left([new ParseError(1)]),
-      name: left([new ParseError(1)]),
-    },
-  ],
-  A.map(AP.sequenceS(ap)), // 1. 行へ合成
-  A.sequence(ap), // 2. シートへ合成
+  raw,
+  // 1. 行へ合成
+  A.map(AP.sequenceS(ap)),
+  // 2. シートへ合成
+  A.sequence(ap),
 );
 ```
 
@@ -772,11 +592,13 @@ pipe(
 
 合成処理を簡潔に表現できる😘
 
-### 顧客の価値に直結
+## 顧客への提供価値に直結
 
 冒頭でも述べた通り表形式データの検証は  
 極力 _一度に_ 全てのエラーを返すことが  
 顧客体験のために重要
+
+
 
 </div>
 </Grid>
@@ -795,34 +617,103 @@ layout: cover
 
 # fp-tsの難しさ
 
-## コンセプト
+## fp-tsのコンセプト
 
-関数型プログラミングのためのユーティリティ
+関数型プログラミングのためのデータ型や型クラスなどの抽象化を提供する
 
-## 難点
+> fp-ts provides developers with popular patterns and reliable abstractions  
+> from _typed functional languages_ in TypeScript.
+> 
+> --- https://gcanti.github.io/fp-ts/
 
-- 非常に抽象度が高い  
-  ドキュメントも抽象度が高い
+## fp-ts採用後に直面した課題
+
+オンボーディングのコストが高い😱
+
+- 関数型プログラミングへの一定の知識が必要
 - 日本語の情報が少ない
-- 業務での実用例の解説が少ない
+- 業務での実用例の解説が少ない  
+  抽象度が高すぎて使い方が分からない
 
 ---
 
-## チームでfp-tsを利用するために①
-# [WIP] プロジェクトで利用するものを限定する
+### チームでfp-tsを利用するために
 
-- pipe/flow
-- Either/Option
-- Task/TaskEither
+# オンボーディングコストの削減
 
-WIP
+私自身 <s>学生時代にHaskellの講義の単位を落としかけたこともあり</s>  
+関数型プログラミングの知見が少なくチーム参画時にかなり苦労した
+
+中長期的に持続して運用できるプロダクトにするためにオンボーディングコストを低減したい
+
+## スコープを限定する
+
+オンボーディングが必要なコンテキスト自体を削減し  
+その代わりにコンテンツの密度を高める
+
+## 短期集中
+
+高い密度で反復して学習できるように  
+メンバー参画時に集中してオンボーディングする
 
 ---
 
-## チームでfp-tsを利用するために②
-# [WIP] ペアプロ・モブプロの活用
+### チームでfp-tsを利用するために①
+# スコープを限定する
 
-WIP
+fp-tsは前述の `Either` のみならず様々な抽象化を提供する  
+まず小さく始めるために、利用するものを限定するとよい
+
+<div class="grid grid-cols-[1fr_1fr_1fr] mb-4 gap-4">
+<div>
+
+## 関数
+
+- `pipe` `flow`  
+  合成関数など
+
+</div>
+<div>
+
+## データ型
+
+- `Readonly(Array|Map)`  
+  readonlyの配列やマップ
+- `NonEmptyArray`  
+  空ではない配列
+- `Task` `TaskEither`  
+  非同期処理の抽象化
+
+</div>
+<div>
+
+## 型クラス
+
+- `Eq`  
+  等価性を表現
+- `Ord`  
+  比較を表現
+- `Bounded`  
+  上限と下限を表現
+
+</div>
+</div>
+
+---
+
+### チームでfp-tsを利用するために②
+# 短期集中型 ペアプロ・モブプロ
+
+
+<div class="grid grid-cols-[1fr_1fr_1fr] mb-4 gap-4">
+<div>
+</div>
+</div>
+
+1日1回15-30分ほどペアプロ・モブプロをする
+
+- タスクをあらかじめ決めておく
+- 
 
 ---
 
