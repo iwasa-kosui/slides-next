@@ -193,7 +193,7 @@ layout: cover
 ---
 
 ### 表形式データ検証の壁①
-# 表形式データのエラーハンドリング
+# 表形式データのエラー処理
 
 <img src="/parse-flow-error.svg" />
 
@@ -248,9 +248,9 @@ layout: two-cols-header
 layoutClass: "!grid-rows-[120px_1fr]"
 ---
 
-# TypeScriptのエラーハンドリング
+# TypeScriptのエラー処理
 
-まずはよく知られたエラーハンドリングの手法をおさらい
+まずはよく知られたエラー処理の手法をおさらい
 
 ::left::
 
@@ -267,7 +267,7 @@ class MyError extends Error {
 
 ::right::
 
-## Either型(Result型)を返す
+## Either型(Result型)で返す
 
 ```ts
 type Either<E, A> = Left<E> | Right<A>;
@@ -285,7 +285,7 @@ type Right<A> = Readonly<{
 
 ---
 
-### TypeScriptのエラーハンドリング①
+### TypeScriptのエラー処理①
 # ユーザー定義エラーをthrowする
 
 <div class="grid grid-cols-2 mb-4 gap-4 !grid-cols-[520px_1fr]">
@@ -394,49 +394,74 @@ pre {
 
 ---
 
-### TypeScriptのエラーハンドリング②
-# Either型(Result型)を返す
+### TypeScriptのエラー処理②
+# Either型(Result型)
 
-<div class="grid grid-cols-2 mb-4 gap-4 !grid-cols-[525px_1fr]">
+<div class="grid grid-cols-2 mb-4 gap-4 !grid-cols-[450px_1fr]">
 
 ```ts
 type Either<E, A> = Left<E> | Right<A>;
 
-type Left<T> = Readonly<{ tag: 'Left'; left: T; }>;
+type Left<T> = Readonly<{
+  tag: 'Left';
+  left: T;
+}>;
 
-type Right<A> = Readonly<{ tag: 'Right'; right: A; }>;
+type Right<A> = Readonly<{
+  tag: 'Right';
+  right: A;
+}>;
 ```
 
 <div>
 
 <ruby>判別可能な<rt>Discriminated</rt></ruby>Union型を用いて  
-成功した場合と失敗した場合を表現
+`Left` と `Right` のどちらかを取る値を表す
+
+### エラー処理に使う場合
+- `Left` の場合をエラー  
+- `Right` の場合を成功  
+
+と表現できる
 
 </div>
 </div>
 
-<div class="grid grid-cols-2 mb-4 gap-4 !grid-cols-[525px_1fr]">
+---
+
+### TypeScriptのエラー処理②
+# Either型(Result型)で返す
+
+<div class="grid grid-cols-2 mb-4 gap-4 !grid-cols-[420px_1fr]">
 
 ```ts
-declare const either: Either<ParseError, string>;
-if (either.tag === 'Right') {
-  console.log(either.right);
-} else {
-  // OK
-  console.error(either.left);
-  // Property 'right' does not exist...
-  console.log(either.right);
-}
+const isLeft = <E, A>(e: Either<E, A>) =>
+  e.tag === 'Left';
+  
+const left = <E>(v: E): Left<E> => ({
+  tag: 'Left',
+  left: v,
+});
 ```
-
 <div>
 
-- 失敗する可能性を型で表現できる
-- `tag` プロパティを見れば  
-  型の絞り込みができる
+- `isLeft`  
+  `tag` プロパティで型の絞り込みが可能
+- `left`  
+  `Left` や `Right` の値を作る  
+  ユーティリティを定義すると便利
 
 </div>
 </div>
+
+```ts
+const parseName: (v: string):
+  Result<ParseError, string> =>
+    v.length > 0 && v.length < 16
+    ? right(v)
+    : left(v)
+```
+
 
 ---
 
