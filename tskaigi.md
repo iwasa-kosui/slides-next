@@ -440,7 +440,7 @@ if (either.tag === 'Right') {
 
 ---
 
-# Either型と複数のエラーを同時に伝搬
+# Either型を用いたエラーの伝搬
 
 <div class="grid grid-cols-2 mb-4 gap-4 !grid-cols-[440px_1fr]">
 
@@ -503,7 +503,56 @@ console.log(parseUserRow(['bad', 'bad']));
 
 # それぞれのセルを行へ合成したい
 
-<img src=/col-to-row.svg width=570 class="mb-8" />
+<Arrow x1="490" y1="190" x2="520" y2="190" width=2 />
+
+### エラーとなるセルが含まれる場合
+
+<div class="grid grid-cols-2 items-center mb-4 gap-4 !grid-cols-[420px_300px] gap-x-[60px]">
+
+```ts
+{
+  id: left([new ParseError(1, 'ID')]),
+  name: left([new ParseError(1, '名前')]),
+  storeId: right(22),
+};
+```
+
+```ts
+left([
+  new ParseError(1, 'ID'),
+  new ParseError(1, '名前'),
+]);
+```
+
+</div>
+
+<Arrow x1="490" y1="380" x2="520" y2="380" width=2 />
+
+### エラーとなるセルが無い場合
+
+<div class="grid grid-cols-2 items-center mb-4 gap-4 !grid-cols-[420px_300px] gap-x-[60px]">
+
+```ts
+{
+  id: right(1),
+  name: right('田中'),
+  storeId: right(22),
+};
+```
+
+```ts
+right({
+  id: right(1),
+  name: right('田中'),
+  storeId: right(22),
+});
+```
+
+</div>
+
+---
+
+# それぞれのセルを行へ合成したい
 
 <div class="grid grid-cols-2 mb-4 gap-4 !grid-cols-[380px_1fr]">
 
@@ -515,19 +564,37 @@ if (isLeft(id)) {
 if (isLeft(name)) {
   errs.push(name.left);
 }
-if (errs) return left(errs);
+
+if (errs) {
+  return left(errs);
+}
+
+assert(isRight(id));
+assert(isRight(name));
+return right({
+  id: id.right,
+  name: name.right;
+})
 ```
 
 <div>
 
-### 自前実装
+## 自前実装
 
-いずれかのセルが `Left` の場合は  
-エラーを取り出して配列に詰め `Left` として返す
+### いずれかのセルが `Left` の場合
 
-全てのセルが `Right` の場合は  `Right` として返す
+エラーを取り出して配列に詰め
+`Left<ParseError[]>` として返す
 
-_😭 自分でやりたくはない_
+### 全てのセルが `Right` の場合
+
+`Right<{ id: number, ... }>`
+として返す
+
+## ライブラリに頼りたい
+
+😭 自分でやりたくはない
+
 </div>
 </div>
 
@@ -535,8 +602,8 @@ _😭 自分でやりたくはない_
 
 <Arrow x1="420" y1="180" x2="450" y2="180" width=2 />
 
-### fp-tsによるエラー合成
-# オブジェクトのエラー合成
+### それぞれのセルを行へ合成したい
+# fp-tsによるオブジェクトのエラー合成
 
 <div class="grid grid-cols-2 mb-4 gap-4 !grid-cols-[350px_350px] gap-x-[60px]">
 
@@ -551,7 +618,7 @@ const cells = {
 type Row = Either<ParseError[], {
   id: string,
   name: string,
-});
+}>;
 ```
 
 </div>
@@ -587,7 +654,7 @@ const row: Row = AP.sequenceS(ap)(cells);
 <div class='-my-2'>
 
 2. 先ほど定義した  `ap` を用いて  
-各セルのEitherを合成できる🎉
+`Record<string, Either<>>` を合成できる
 
 </div>
 </Grid>
@@ -600,49 +667,94 @@ const row: Row = AP.sequenceS(ap)(cells);
 
 ---
 
+<Arrow x1="495" y1="240" x2="525" y2="240" width=2 />
+
 ### fp-tsによるエラー合成
 # 配列のエラー合成
 
-<div class="grid grid-cols-2 mb-4 gap-4 !grid-cols-[500px_1fr]">
-<div>
+## やりたいこと
+
+<div class="grid grid-cols-2 mb-4 gap-4 !grid-cols-[425px_350px] gap-x-[60px]">
 
 ```ts
-[
-  {
-    id: left([new ParseError(1)]),
-    name: left([new ParseError(1)]),
-  },
-  {
-    id: left([new ParseError(1)]),
-    name: left([new ParseError(1)]),
-  },
+const rows = [
+  left([new ParseError(1)]),
+  right({
+    id: 2,
+    name: '田中',
+  }),
+  left([new ParseError(3)]),
 ];
-const rows: Array<E.Either<ParseError[], User>>;
+```
+
+```ts
+const sheet = left([
+  new ParseError(1),
+  new ParseError(3),
+]);
 ```
 
 </div>
-<div class='-mt-2'>
 
-行の配列をシートへ合成したい
+## 実現方法
 
-</div>
-</div>
-
-<div class="grid grid-cols-2 mb-4 gap-4 !grid-cols-[500px_1fr]">
+<Grid width='420px'>
+<div>
 
 ```ts
-import * as A from 'fp-ts/Array';
-// E.Either<ParseError[], User[]>;
-const eitherUsers = A.sequence(ap)(rows);
+// 行へ合成
+const sheet: Row = A.sequence(ap)(rows);
+```
+
+</div>
+<div class='-my-2'>
+
+先ほど定義した  `ap` を用いて  
+`Either` の配列を合成できる🎉
+
+</div>
+</Grid>
+
+---
+
+### fp-tsによるエラー合成
+# セル→行→シートまで一気通貫で合成
+
+<Grid>
+
+```ts
+import { pipe } from 'fp-ts/function';
+pipe(
+  [
+    {
+      id: left([new ParseError(1)]),
+      name: left([new ParseError(1)]),
+    },
+    {
+      id: left([new ParseError(1)]),
+      name: left([new ParseError(1)]),
+    },
+  ],
+  A.map(AP.sequenceS(ap)), // 1. 行へ合成
+  A.sequence(ap), // 2. シートへ合成
+);
 ```
 
 <div>
 
-- 成功: `User[]`
-- 失敗: `ParseError[]`
+1. 各セルで構成されるオブジェクト ➡ 行へ
+1. 行の配列 ➡ シートへ
+
+合成処理を簡潔に表現できる😘
+
+### 顧客の価値に直結
+
+冒頭でも述べた通り表形式データの検証は  
+極力 _一度に_ 全てのエラーを返すことが  
+顧客体験のために重要
 
 </div>
-</div>
+</Grid>
 
 ---
 layout: cover
@@ -672,19 +784,24 @@ layout: cover
 ---
 
 ## チームでfp-tsを利用するために①
-# プロジェクトで利用するものを限定する
+# [WIP] プロジェクトで利用するものを限定する
 
 - pipe/flow
 - Either/Option
 - Task/TaskEither
 
+WIP
+
 ---
 
 ## チームでfp-tsを利用するために②
-# ペアプロ・モブプロの活用
+# [WIP] ペアプロ・モブプロの活用
+
+WIP
 
 ---
 
 ## チームでfp-tsを利用するために③
-# 社内向けレシピ集
+# [WIP] 社内向けレシピ集
 
+WIP

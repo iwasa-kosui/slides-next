@@ -14,8 +14,9 @@
     "vue": "3.4.26"
   },
   "devDependencies": {
+    "@iconify-json/bi": "1.1.23",
     "@iconify-json/tabler": "1.1.110",
     "@iconify-json/vscode-icons": "1.1.33",
-    "@iconify-json/bi": "1.1.23"
+    "playwright-chromium": "^1.44.0"
   }
 }
