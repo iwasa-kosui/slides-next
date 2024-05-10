@@ -90,7 +90,7 @@ layout: cover
 
 ---
 layout: two-cols-header
-layoutClass: "!grid-rows-[120px_1fr]"
+layoutClass: "!grid-rows-[120px_1fr] !gap-4"
 ---
 
 # SaaS (Software as a Service) の発展と変化
@@ -111,7 +111,8 @@ SaaS業界が発展するにつれ、要求される機能や品質も変化し�
 - 誰でも使える明快さ
 - 上場企業も安心して使えるコンプライアンス
 - _組織管理_  
-  大規模で階層的な組織を効率的かつ柔軟に管理できる
+  大規模で階層的な組織を  
+  効率的かつ柔軟に管理できる
 
 ---
 layout: two-cols-header
@@ -162,8 +163,9 @@ layoutClass: "!grid-cols-[360px_1fr]"
 エラーの原因が判別しにくい  
 ➡ 修正作業は多大な時間と労力を伴う
 
-- 修正する箇所(セル)が不明瞭
-- 修正する理由が不明瞭  
+- 修正すべき箇所(セル)が不明瞭
+- 修正すべき理由が不明瞭  
+  データ型？使用不能文字？値の重複？  
   他のシートと依存関係がある場合は特に難しい  
 
 ## 繰り返される再入稿
@@ -211,7 +213,7 @@ layout: cover
 ---
 
 ### 表形式データ検証の壁②
-# 依存関係の安全な解決
+# 依存関係の解決
 
 組織の階層構造を表現するために、ある行が他シートの行を参照する  
 例) ユーザーの所属を表現するため店舗シートを参照
@@ -243,7 +245,7 @@ layout: cover
 
 ---
 layout: two-cols-header
-layoutClass: "!grid-rows-[90px_1fr]"
+layoutClass: "!grid-rows-[120px_1fr]"
 ---
 
 # TypeScriptのエラーハンドリング
@@ -252,7 +254,7 @@ layoutClass: "!grid-rows-[90px_1fr]"
 
 ::left::
 
-## ユーザー定義の例外をthrowする
+## ユーザー定義エラーをthrowする
 
 ```ts
 class MyError extends Error {
@@ -265,26 +267,26 @@ class MyError extends Error {
 
 ::right::
 
-## Result型を返す
+## Either型(Result型)を返す
 
 ```ts
-type Result<T, E> = Ok<T> | Err<E>;
+type Either<E, A> = Left<E> | Right<A>;
 
-type Ok<T> = Readonly<{
-  ok: true;
-  val: T;
+type Left<T> = Readonly<{
+  tag: 'Left';
+  left: T;
 }>;
 
-type Err<E> = Readonly<{
-  ok: false;
-  err: E;
+type Right<A> = Readonly<{
+  tag: 'Right';
+  right: A;
 }>;
 ```
 
 ---
 
 ### TypeScriptのエラーハンドリング①
-# ユーザー定義の例外をthrowする
+# ユーザー定義エラーをthrowする
 
 <div class="grid grid-cols-2 mb-4 gap-4 !grid-cols-[520px_1fr]">
 
@@ -303,7 +305,19 @@ class ParseError extends Error {
 `Error` を拡張したクラスを定義する
 
 - エラー原因の情報を追加できる
-- 古くからある実績ある手法
+
+</div>
+</div>
+
+<div class="grid grid-cols-2 mb-4 gap-4 !grid-cols-[520px_1fr]">
+
+```ts
+throw new ParseError(1);
+```
+
+<div class='my-1'>
+
+- 例外としてthrowする
 
 </div>
 </div>
@@ -316,9 +330,9 @@ if (err instanceof ParseError) {
 }
 ```
 
-<div>
+<div class='my-1'>
 
-`instanceof` 演算子により  
+- `instanceof` 演算子により  
 エラーを識別できる
 
 </div>
@@ -326,7 +340,7 @@ if (err instanceof ParseError) {
 
 ---
 
-# 😭 「ユーザー定義の例外をthrowする」場合の悩み
+# 😭 例外をthrowする場合の悩み
 
 ## 複数のエラーを同時に伝搬しづらい
 
@@ -340,17 +354,13 @@ const parseUserRow = (cells: string[]) => ({
 });
 ```
 
-<div class="-my-3">
-
-ある行のパース時に  
-複数のセルのパースに失敗
+<div>
 
 `parseUserId` が例外を投げてしまうと  
 他のセルの検証エラーをクライアントへ  
 返せないまま処理が中断
 
 </div>
-
 </div>
 
 <div class="grid grid-cols-2 mb-4 gap-4 !grid-cols-[490px_1fr]">
@@ -385,16 +395,16 @@ pre {
 ---
 
 ### TypeScriptのエラーハンドリング②
-# Result型を返す
+# Either型(Result型)を返す
 
-<div class="grid grid-cols-2 mb-4 gap-4 !grid-cols-[500px_1fr]">
+<div class="grid grid-cols-2 mb-4 gap-4 !grid-cols-[525px_1fr]">
 
 ```ts
-type Result<T, E> = Ok<T> | Err<E>;
+type Either<E, A> = Left<E> | Right<A>;
 
-type Ok<T> = Readonly<{ ok: true; val: T; }>;
+type Left<T> = Readonly<{ tag: 'Left'; left: T; }>;
 
-type Err<E> = Readonly<{ ok: false; err: E; }>;
+type Right<A> = Readonly<{ tag: 'Right'; right: A; }>;
 ```
 
 <div>
@@ -405,24 +415,24 @@ type Err<E> = Readonly<{ ok: false; err: E; }>;
 </div>
 </div>
 
-<div class="grid grid-cols-2 mb-4 gap-4 !grid-cols-[500px_1fr]">
+<div class="grid grid-cols-2 mb-4 gap-4 !grid-cols-[525px_1fr]">
 
 ```ts
-declare const result: Result<string, ParseError>;
-if (result.ok) {
-  console.log(result.val);
+declare const either: Either<ParseError, string>;
+if (either.tag === 'Right') {
+  console.log(either.right);
 } else {
   // OK
-  console.error(result.err);
-  // Property 'val' does not exist...
-  console.log(result.val);
+  console.error(either.left);
+  // Property 'right' does not exist...
+  console.log(either.right);
 }
 ```
 
 <div>
 
 - 失敗する可能性を型で表現できる
-- `ok` プロパティを見れば  
+- `tag` プロパティを見れば  
   型の絞り込みができる
 
 </div>
@@ -430,31 +440,31 @@ if (result.ok) {
 
 ---
 
-# 👏 Result型なら複数のエラーを同時に伝搬できる 
+# Either型と複数のエラーを同時に伝搬
 
-<div class="grid grid-cols-2 mb-4 gap-4 !grid-cols-[450px_1fr]">
+<div class="grid grid-cols-2 mb-4 gap-4 !grid-cols-[440px_1fr]">
 
 ```ts
 declare const parseUserId:
-  (v: string) => Result<string, ParseError>;
+  (v: string) => Either<ParseError, string>;
 
 declare const parseUsername:
-  (v: string) => Result<string, ParseError>;
+  (v: string) => Either<ParseError, string>;
 ```
 
 <div class="-my-3">
 
-それぞれのセルのパース関数が `Result<string, ParseError>` を返す
+それぞれのセルのパース関数が `Either<ParseError, string>` を返す
 
 </div>
 </div>
 
-<div class="grid grid-cols-2 mb-4 gap-4 !grid-cols-[450px_1fr]">
+<div class="grid grid-cols-2 mb-4 gap-4 !grid-cols-[440px_1fr]">
 
 ```ts
 const parseUserRow = (cells: string[]) => ({
-  id: parseUserId(cells[0]),     // Err
-  name: parseUsername(cells[1]), // Err
+  id: parseUserId(cells[0]),     // Left
+  name: parseUsername(cells[1]), // Left
 });
 ```
 
@@ -466,13 +476,13 @@ IDと名前の両方のセルで
 </div>
 </div>
 
-<div class="grid grid-cols-2 mb-4 gap-4 !grid-cols-[450px_1fr]">
+<div class="grid grid-cols-2 mb-4 gap-4 !grid-cols-[440px_1fr]">
 
 ```ts
 console.log(parseUserRow(['bad', 'bad']));
 // {
-//   id: { err: ... },
-//   name: { err: ... },
+//   id: { left: ... },
+//   name: { left: ... },
 // }
 ```
 
@@ -485,68 +495,68 @@ console.log(parseUserRow(['bad', 'bad']));
 
 ---
 
-# エラーを合成したい
+# それぞれのセルを行へ合成したい
 
-<Grid width=400px>
+![](/col-to-row.svg)
 
-<div>
+---
 
-```ts
-// セル
-const id: Result<string, ParseError>;
-const name: Result<string, ParseError>;
+# それぞれのセルを行へ合成したい
 
-// 行
-const row: Result<
-  { id: string; name: string; },
-  ParseError[],
->;
-```
-</div>
+<img src=/col-to-row.svg width=570 class="mb-8" />
 
-<div>
-
-## セルの配列をシートへ合成したい
-
-それぞれの行について  
-
-❌ 1つ以上のセルの検証に失敗したら  
-その行自体の検証を失敗としたい
-
-✅ 全てのセルの検証に成功したら  
-その行自体の検証を成功としたい
-
-</div>
-</Grid>
-
-<Grid width=400px>
-
-<div>
+<div class="grid grid-cols-2 mb-4 gap-4 !grid-cols-[380px_1fr]">
 
 ```ts
 const errs: ParseError[] = [];
-if (!id.ok) errs.push(id.err);
-if (!name.ok) errs.push(name.err);
-if (errs) return errs;
-// ...
+if (isLeft(id)) {
+  errs.push(id.left);
+}
+if (isLeft(name)) {
+  errs.push(name.left);
+}
+if (errs) return left(errs);
 ```
-</div>
 
 <div>
 
-## 😭 自前実装はつらい
+### 自前実装
 
-➡ そんな時に <fp-ts /> fp-ts
+いずれかのセルが `Left` の場合は  
+エラーを取り出して配列に詰め `Left` として返す
 
+全てのセルが `Right` の場合は  `Right` として返す
+
+_😭 自分でやりたくはない_
 </div>
-</Grid>
+</div>
 
 ---
+
+<Arrow x1="420" y1="180" x2="450" y2="180" width=2 />
 
 ### fp-tsによるエラー合成
 # オブジェクトのエラー合成
 
-<Grid width='500px'>
+<div class="grid grid-cols-2 mb-4 gap-4 !grid-cols-[350px_350px] gap-x-[60px]">
+
+```ts
+const cells = {
+  id: left([new ParseError(1)]),
+  name: left([new ParseError(1)]),
+};
+```
+
+```ts
+type Row = Either<ParseError[], {
+  id: string,
+  name: string,
+});
+```
+
+</div>
+
+<Grid width='420px'>
 
 ```ts
 import * as AP from 'fp-ts/Apply';
@@ -559,63 +569,80 @@ const ap = E.getApplicativeValidation(
 
 <div>
   
-`Left` に積まれた `ParseError[]` を  
+1. `Left` の `ParseError[]` を  
 結合する関数 `ap` を定義
 
 </div>
 </Grid>
 
-<Grid width='500px'>
+<Grid width='420px'>
 <div>
 
 ```ts
-const id: E.Either<string, ParseError[]>;
-const name: E.Either<string, ParseError[]>;
-
-type User = { id: string; name: string; };
-
-// E.Either<ParseError[], User>
-const eitherUser = AP.sequenceS(ap)({ id, name });
+// 行へ合成
+const row: Row = AP.sequenceS(ap)(cells);
 ```
 
 </div>
-<div>
+<div class='-my-2'>
 
-先ほど定義した  `ap` を用いて  
-各プロパティのEitherを合成
-
-- 成功: `User`
-- 失敗: `ParseError[]`
+2. 先ほど定義した  `ap` を用いて  
+各セルのEitherを合成できる🎉
 
 </div>
 </Grid>
 
 ---
 
+# それぞれの行をシートへ合成したい
+
+![](/row-to-sheet.svg)
+
+---
+
 ### fp-tsによるエラー合成
 # 配列のエラー合成
 
-行の配列をシートへ合成したい
-
-<Grid width='500px'>
-
+<div class="grid grid-cols-2 mb-4 gap-4 !grid-cols-[500px_1fr]">
 <div>
 
 ```ts
+[
+  {
+    id: left([new ParseError(1)]),
+    name: left([new ParseError(1)]),
+  },
+  {
+    id: left([new ParseError(1)]),
+    name: left([new ParseError(1)]),
+  },
+];
 const rows: Array<E.Either<ParseError[], User>>;
+```
 
+</div>
+<div class='-mt-2'>
+
+行の配列をシートへ合成したい
+
+</div>
+</div>
+
+<div class="grid grid-cols-2 mb-4 gap-4 !grid-cols-[500px_1fr]">
+
+```ts
+import * as A from 'fp-ts/Array';
 // E.Either<ParseError[], User[]>;
 const eitherUsers = A.sequence(ap)(rows);
 ```
 
-</div>
-
 <div>
 
-
+- 成功: `User[]`
+- 失敗: `ParseError[]`
 
 </div>
-</Grid>
+</div>
 
 ---
 layout: cover
