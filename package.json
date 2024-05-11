@@ -11,6 +11,8 @@
     "@slidev/cli": "0.49.0-beta.6",
     "@slidev/theme-default": "latest",
     "@slidev/theme-seriph": "latest",
+    "fp-ts": "^2.16.5",
+    "newtype-ts": "^0.3.5",
     "vue": "3.4.26"
   },
   "devDependencies": {

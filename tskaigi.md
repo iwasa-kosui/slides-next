@@ -197,7 +197,7 @@ layoutClass: "!grid-cols-[360px_1fr]"
 layout: cover
 ---
 
-## 課題
+## 課題①
 # <vscode-icons-file-type-excel2 />表形式データの検証にて<br/>_正確_ かつ _効率的_ にエラーを<br/>フィードバックするには？
 
 ::icon::
@@ -230,28 +230,6 @@ layout: cover
 # 表形式データのエラー処理のあるある
 
 <img src="/parse-flow-error-3.svg" />
-
----
-
-### 表形式データ検証の課題
-# 依存関係の解決
-
-組織の階層構造を表現するために、ある行が他シートの行を参照する  
-例) ユーザーの所属を表現するため店舗シートを参照
-
-<Grid width='500px'>
-
-![](/dep.svg)
-
-<div>
-
-😱検証済みの行を参照したいのに  
-未検証の行を参照してしまった
-
-➡ 型検査で未然に防ぎたい
-
-</div>
-</Grid>
 
 ---
 layout: cover
@@ -668,6 +646,59 @@ pipe(
 
 </div>
 </Grid>
+
+---
+layout: cover
+---
+
+## 課題②
+# <vscode-icons-file-type-excel2 />シート間の依存関係を<br/>型によって表現したい
+
+---
+
+### 表形式データ検証の課題
+# 依存関係の解決
+
+組織の階層構造を表現するために、ある行が他シートの行を参照する  
+例) ユーザーの所属を表現するため店舗シートを参照
+
+<Grid width='500px'>
+
+![](/dep.svg)
+
+<div>
+
+😱検証済みの行を参照したいのに  
+未検証の行を参照してしまった
+
+➡ 型検査で未然に防ぎたい
+
+</div>
+</Grid>
+
+---
+
+# <fp-ts /> 公称型の活用
+
+公称型を利用して検査の関門を一つに絞る
+
+```ts twoslash
+import * as E from 'fp-ts/Either';
+import { Newtype, iso } from 'newtype-ts';
+
+type Username = Newtype<{ readonly Username: unique symbol }, string>;
+const bad: Username = '田中'; // ちゃんと型検査で落としてくれる
+```
+
+```ts
+const Username = {
+  // 「この関数を通らないとUsername型にできない」という状態へ
+  parse: (v: string): E.Either<ParseError, Username> =>
+    v.length > 0 && v.length < 16
+      ? iso<Username>.wrap(v)
+      : new ParseError('文字列長が誤っています'),
+} as const;
+```
 
 ---
 layout: cover
