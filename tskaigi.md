@@ -18,8 +18,8 @@ mdc: true
 
 # _**正確性**_ と _**効率性**_ を両立する<br/><fp-ts />**fp-ts**のチーム活用術
 
-株式会社カケハシ
-kosui (岩佐 幸翠)
+### 株式会社カケハシ
+### kosui (岩佐 幸翠)
 
 ---
 layout: two-cols
@@ -48,8 +48,7 @@ layoutClass: "!grid-cols-[300px_1fr]"
 ### 組織管理・認証基盤リノベチーム
 
 顧客に寄り添うプロダクト開発チームが  
-本質的な価値提供に集中できるように  
-あるべき社内プラットフォームを探索し開発
+本質的な価値提供に集中できる世界を目指す  
 
 2023年9月よりテックリードとして  
 社内プラットフォームが創出できる  
@@ -82,8 +81,9 @@ layoutClass: "!grid-cols-[300px_1fr]"
    SaaSのエンタープライズ対応と
    <vscode-icons-file-type-excel2 />Excel一括入稿機能の重要性
 1. 課題<br />
-   <vscode-icons-file-type-excel2 />Excel一括入稿機能で 
-   _正確_ かつ _効率的_ に検証したい
+   表形式データの検証にて<br/>
+   正確かつ効率的にエラーを<br/>
+   フィードバックするには？
 1. fp-tsによるエラー合成
 1. fp-tsのチーム活用
 
@@ -106,12 +106,15 @@ layout: cover
 
 ---
 layout: two-cols-header
-layoutClass: "!grid-rows-[120px_1fr] !gap-4"
+layoutClass: "!grid-rows-[170px_1fr] !gap-4"
 ---
 
-# SaaS (Software as a Service) の発展と変化
+# バーティカル SaaS (Software as a Service) の発展と変化
 
-SaaS業界が発展するにつれ、要求される機能や品質も変化している
+医療や建築や物流などの領域でもDXが進んでいる  
+
+バーティカルSaaS業界が発展するにつれ  
+要求される機能や品質も変化している
 
 ::left::
 
@@ -195,7 +198,7 @@ layout: cover
 ---
 
 ## 課題
-# <vscode-icons-file-type-excel2 />表形式データの検証<br/>正確かつ効率的にエラーを<br/>フィードバックするには？
+# <vscode-icons-file-type-excel2 />表形式データの検証にて<br/>_正確_ かつ _効率的_ にエラーを<br/>フィードバックするには？
 
 ::icon::
 
@@ -209,28 +212,28 @@ layout: cover
 
 ---
 
-### 表形式データ検証の壁①
+### 表形式データ検証の課題
 # 表形式データのエラー処理の実例
 
 <img src="/parse-flow-error-1.svg" />
 
 ---
 
-### 表形式データ検証の壁①
+### 表形式データ検証の課題
 # 表形式データのエラー処理の理想
 
 <img src="/parse-flow-error-2.svg" />
 
 ---
 
-### 表形式データ検証の壁①
+### 表形式データ検証の課題
 # 表形式データのエラー処理のあるある
 
 <img src="/parse-flow-error-3.svg" />
 
 ---
 
-### 表形式データ検証の壁②
+### 表形式データ検証の課題
 # 依存関係の解決
 
 組織の階層構造を表現するために、ある行が他シートの行を参照する  
@@ -559,7 +562,52 @@ const row = AP.sequenceS(ap)(cells);
 
 # それぞれの行をシートへ合成したい
 
-![](/row-to-sheet.svg)
+<Arrow x1="520" y1="190" x2="550" y2="190" width=2 />
+
+### エラーとなる行が含まれる場合
+
+<div class="grid grid-cols-2 items-center mb-4 gap-4 !grid-cols-[450px_400px] gap-x-[60px]">
+
+```ts
+const rows = [
+  left([ new ParseError(1, 'ID') ]),
+  left([ new ParseError(2, '名前') ]),
+  right({ id: 3, name: '田中', storeId: 66 }),
+];
+```
+
+```ts
+const sheet = left([
+  new ParseError(1, 'ID'),
+  new ParseError(2, '名前'),
+]);
+```
+
+</div>
+
+<Arrow x1="520" y1="380" x2="550" y2="380" width=2 />
+
+### エラーとなる行が無い場合
+
+<div class="grid grid-cols-2 items-center mb-4 gap-4 !grid-cols-[450px_400px] gap-x-[60px]">
+
+```ts
+const rows = [
+  right({ id: 1, name: '長野', storeId: 22 }),
+  right({ id: 2, name: '大崎', storeId: 44 }),
+  right({ id: 3, name: '田中', storeId: 66 }),
+];
+```
+
+```ts
+const sheet = right([
+  { id: 1, name: '長野', storeId: 22 },
+  { id: 2, name: '大崎', storeId: 44 },
+  { id: 3, name: '田中', storeId: 66 },
+]);
+```
+
+</div>
 
 ---
 
