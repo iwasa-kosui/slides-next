@@ -682,21 +682,20 @@ layout: cover
 
 公称型を利用して検査の関門を一つに絞る
 
-```ts twoslash
+```ts
 import * as E from 'fp-ts/Either';
 import { Newtype, iso } from 'newtype-ts';
 
-type Username = Newtype<{ readonly Username: unique symbol }, string>;
-const bad: Username = '田中'; // ちゃんと型検査で落としてくれる
-```
+type ParseError = Readonly<{ message: string }>
+const ParseError = { new: (message: string) => ({ message }) } as const
 
-```ts
+type Username = Newtype<{ readonly Username: unique symbol }, string>;
 const Username = {
   // 「この関数を通らないとUsername型にできない」という状態へ
   parse: (v: string): E.Either<ParseError, Username> =>
     v.length > 0 && v.length < 16
       ? iso<Username>.wrap(v)
-      : new ParseError('文字列長が誤っています'),
+      : ParseError.new('文字列長が誤っています'),
 } as const;
 ```
 
