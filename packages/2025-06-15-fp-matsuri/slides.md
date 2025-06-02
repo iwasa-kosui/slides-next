@@ -1,637 +1,537 @@
 ---
 # try also 'default' to start simple
-theme: seriph
+theme: ./theme
 # random image from a curated Unsplash collection by Anthony
 # like them? see https://unsplash.com/collections/94734566/slidev
-background: https://cover.sli.dev
+background: /bg.png
 # some information about your slides, markdown enabled
-title: Welcome to Slidev
+title: 堅牢な認証基盤の実現:TypeScriptで代数的データ型を活用する
 info: |
-  ## Slidev Starter Template
-  Presentation slides for developers.
+    ## Slidev Starter Template
+    Presentation slides for developers.
 
-  Learn more at [Sli.dev](https://sli.dev)
+    Learn more at [Sli.dev](https://sli.dev)
 # apply any unocss classes to the current slide
 class: text-center
 # https://sli.dev/custom/highlighters.html
 highlighter: shiki
 # https://sli.dev/guide/drawing
 drawings:
-  persist: false
+    persist: false
 # slide transition: https://sli.dev/guide/animations#slide-transitions
-transition: slide-left
+transition: immediate-fade
 # enable MDC Syntax: https://sli.dev/guide/syntax#mdc-syntax
 mdc: true
 ---
 
-# Welcome to Slidev
+# 堅牢な認証基盤の実現:<br/>TypeScriptで<br/>代数的データ型を活用する
 
-Presentation slides for developers
-
-<div class="pt-12">
-  <span @click="$slidev.nav.next" class="px-2 py-1 rounded cursor-pointer" hover="bg-white bg-opacity-10">
-    Press Space for next page <carbon:arrow-right class="inline"/>
-  </span>
-</div>
-
-<div class="abs-br m-6 flex gap-2">
-  <button @click="$slidev.nav.openInEditor()" title="Open in Editor" class="text-xl slidev-icon-btn opacity-50 !border-none !hover:text-white">
-    <carbon:edit />
-  </button>
-  <a href="https://github.com/slidevjs/slidev" target="_blank" alt="GitHub" title="Open in GitHub"
-    class="text-xl slidev-icon-btn opacity-50 !border-none !hover:text-white">
-    <carbon-logo-github />
-  </a>
-</div>
-
-<!--
-The last comment block of each slide will be treated as slide notes. It will be visible and editable in Presenter Mode along with the slide. [Read more in the docs](https://sli.dev/guide/syntax.html#notes)
--->
+### 株式会社カケハシ <br/> 岩佐 幸翠 (@kosui_me)
 
 ---
-transition: fade-out
----
 
-# What is Slidev?
+# この発表の目的
 
-Slidev is a slides maker and presenter designed for developers, consist of the following features
+## 対象
 
-- 📝 **Text-based** - focus on the content with Markdown, and then style them later
-- 🎨 **Themable** - theme can be shared and used with npm packages
-- 🧑‍💻 **Developer Friendly** - code highlighting, live coding with autocompletion
-- 🤹 **Interactive** - embedding Vue components to enhance your expressions
-- 🎥 **Recording** - built-in recording and camera view
-- 📤 **Portable** - export into PDF, PNGs, or even a hostable SPA
-- 🛠 **Hackable** - anything possible on a webpage
+> 対象とする聴衆のレベル  
+> Beginner: 分野の前提知識を必要としない
 
-<br>
-<br>
+## よくある話
 
-Read more about [Why Slidev?](https://sli.dev/guide/why)
+「関数型プログラミングには少し興味があるけれど  
+どのように実務で活用できるか分からない」
 
-<!--
-You can have `style` tag in markdown to override the style for the current page.
-Learn more: https://sli.dev/guide/syntax#embedded-styles
--->
+## そこで...
 
-<style>
-h1 {
-  background-color: #2B90B6;
-  background-image: linear-gradient(45deg, #4EC5D4 10%, #146b8c 20%);
-  background-size: 100%;
-  -webkit-background-clip: text;
-  -moz-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  -moz-text-fill-color: transparent;
-}
-</style>
-
-<!--
-Here is another comment.
--->
+関数型プログラミング (**_FP_**) に興味を持ち始めた方へ  
+FPのパターンと実務における活用を橋渡ししたい
 
 ---
-transition: slide-up
-level: 2
----
 
-# Navigation
+# この発表の目的
 
-Hover on the bottom-left corner to see the navigation's controls panel, [learn more](https://sli.dev/guide/navigation.html)
+## FPのトレンド
 
-## Keyboard Shortcuts
+- FPの思想やパターンが各言語へ  
+  例) RustやJavaへのパターンマッチングの導入
+- FPの思想を取り入れたライブラリへの注目  
+  例) Effect(-TS)がThoughtworks Technology Radarで「Trial」へ
 
-|     |     |
-| --- | --- |
-| <kbd>right</kbd> / <kbd>space</kbd>| next animation or slide |
-| <kbd>left</kbd>  / <kbd>shift</kbd><kbd>space</kbd> | previous animation or slide |
-| <kbd>up</kbd> | previous slide |
-| <kbd>down</kbd> | next slide |
+## FPと実務
 
-<!-- https://sli.dev/guide/animations.html#click-animations -->
-<img
-  v-click
-  class="absolute -bottom-9 -left-7 w-80 opacity-50"
-  src="https://sli.dev/assets/arrow-bottom-left.svg"
-  alt=""
-/>
-<p v-after class="absolute bottom-23 left-45 opacity-30 transform -rotate-10">Here!</p>
+「実務でFPをどう活かす？」「FPの事業価値は何か？」  
+曖昧な問いには曖昧な返答しかできない
+
+そこで **_代数的データ型_** と **_認証基盤_** を題材に  
+FPのエッセンスを実際の業務に取り入れた事例から価値を理解する
 
 ---
-layout: two-cols
-layoutClass: gap-16
+
+# 目次
+
+1. 堅牢な認証システムへの要求
+1. 複雑な状態遷移
+1. 代数的データ型
+1. 検証漏れの防止  
+   未検証のログインセッションと  
+   検証済のログインセッションに分けて考える
+1. 状態の永続化と監査ログの記録  
+   状態の変化をイベントとして表現  
+   イベントごとにリポジトリとロガーを実装する
+
 ---
 
-# Table of contents
+# 背景
 
-You can use the `Toc` component to generate a table of contents for your slides:
+## 医療システムの認証基盤
 
-```html
-<Toc minDepth="1" maxDepth="1"></Toc>
+医療を支えるシステムは患者の要配慮個人情報を扱う  
+命に関わるシステムの品質要件は高い
+
+```mermaid
+graph LR
+プロダクトA --> 認証基盤
+プロダクトB --> 認証基盤
+プロダクトC --> 認証基盤
+認証基盤 --- MFA([多要素認証])
+認証基盤 --- AuditLog([監査ログ])
+認証基盤 --- DR([災害対策])
 ```
 
-The title will be inferred from your slide content, or you can override it with `title` and `level` in your frontmatter.
+---
+
+# 課題
+
+## 認証基盤の複雑さ: 状態の管理と遷移
+
+認証のフローは3つのステップから構成される
+
+<div class='flex gap-8'>
+
+<div class='flex flex-col gap-2'>
+<h3>1. アカウント選択</h3>
+<div class='mini-form'>
+<label for='name'>ログインID</label>
+<input type=text id='name' name='name' value='foo@example.com'>
+<button class='self-end'>次へ</button>
+</div>
+</div>
+
+<div class='flex flex-col gap-2'>
+<h3>2. ログイン</h3>
+<div class='mini-form'>
+<label for='name'>ログインID</label>
+<select id='name' name='name'>
+<option value='foo@example.com'>foo@example.com</option>
+</select>
+<label for='password'>パスワード</label>
+<input type=password id='password' name='password' value='xxxxxxxxxxxxxxxx'>
+<div class='self-end flex gap-1'>
+</div>
+<div class='self-end flex gap-1'>
+<button>次へ</button>
+</div>
+</div>
+</div>
+
+<div class='flex flex-col gap-2'>
+<h3>3. 同意</h3>
+<div class='mini-form'>
+<p>foo@example.com さん</p>
+
+このアプリへの情報提供に同意しますか？
+
+- メールアドレス
+
+<div class='self-end flex gap-1'>
+<button>同意する</button>
+<button class='abort'>同意しない</button>
+</div>
+</div>
+</div>
+
+</div>
+
+それぞれのステップへの遷移を誤ると **_セキュリティインシデント_** になる
+
+とはいえ、一見シンプルに見えるが...?
+
+---
+
+# 課題
+
+## 認証基盤の複雑さ: 状態の管理と遷移
+
+クライアントからのリクエストに応じてステップごとに必要な処理が異なる
+
+<div class='flex gap-8'>
+
+<div class='flex flex-col gap-2'>
+<h3>1. アカウント選択</h3>
+<div class='mini-form'>
+<label for='name'>ログインID</label>
+<input type=text id='name' name='name' value='foo@example.com'>
+<button class='self-end'>次へ</button>
+</div>
+<div class='mini-form'>
+<button><mdi-devices />パスキーを使用する</button>
+</div>
+<div class='mini-form'>
+
+画面をスキップ  
+(認証リクエストのパラメータから)
+
+</div>
+<div class='mini-form'>
+
+画面をスキップ  
+(ログインセッションから)
+
+</div>
+</div>
+
+<div class='flex flex-col gap-2'>
+<h3>2. ログイン</h3>
+<div class='mini-form'>
+<label for='name'>ログインID</label>
+<select id='name' name='name'>
+<option value='foo@example.com'>foo@example.com</option>
+</select>
+<label for='password'>パスワード</label>
+<input type=password id='password' name='password' value='xxxxxxxxxxxxxxxx'>
+<div class='self-end flex gap-1'>
+</div>
+<div class='self-end flex gap-1'>
+<button>次へ</button>
+</div>
+</div>
+<div class='mini-form'>
+
+<label for='password'>送信したメールのPINコード</label>
+<input type=password id='password' name='password' value='xxxxxxxxxxxxxxxx'>
+
+</div>
+<div class='mini-form'>
+
+画面をスキップ  
+(有効なログインセッションから)
+
+</div>
+</div>
+
+<div class='flex flex-col gap-2'>
+<h3>3. 同意</h3>
+<div class='mini-form'>
+<p>foo@example.com さん</p>
+
+このアプリへの情報提供に同意しますか？
+
+- メールアドレス
+
+<div class='self-end flex gap-1'>
+<button>同意する</button>
+<button class='abort'>同意しない</button>
+</div>
+</div>
+<div class='mini-form'>
+
+画面をスキップ  
+(既に同意済み)
+
+</div>
+</div>
+
+</div>
+
+---
+
+# 課題
+
+## 認証基盤の複雑さ: 状態の管理と遷移
+
+例) `prompt=none` の場合は _画面を表示してはいけない_
+
+<div class='flex gap-8'>
+
+<div class='flex flex-col gap-2'>
+<h3>1. アカウント選択</h3>
+<div class='mini-form'>
+<label for='name'>ログインID</label>
+<input type=text id='name' name='name' value='foo@example.com'>
+<button class='self-end'>次へ</button>
+</div>
+<div class='mini-form'>
+<button><mdi-devices />パスキーを使用する</button>
+</div>
+<div class='mini-form'>
+
+画面をスキップ  
+(認証リクエストのパラメータから)
+
+</div>
+<div class='mini-form'>
+
+画面をスキップ  
+(ログインセッションから)
+
+</div>
+</div>
+
+<div class='flex flex-col gap-2'>
+<h3>2. ログイン</h3>
+<div class='mini-form'>
+<label for='name'>ログインID</label>
+<select id='name' name='name'>
+<option value='foo@example.com'>foo@example.com</option>
+</select>
+<label for='password'>パスワード</label>
+<input type=password id='password' name='password' value='xxxxxxxxxxxxxxxx'>
+<div class='self-end flex gap-1'>
+</div>
+<div class='self-end flex gap-1'>
+<button>次へ</button>
+</div>
+</div>
+<div class='mini-form'>
+
+<label for='password'>送信したメールのPINコード</label>
+<input type=password id='password' name='password' value='xxxxxxxxxxxxxxxx'>
+
+</div>
+<div class='mini-form'>
+
+画面をスキップ  
+(有効なログインセッションから)
+
+</div>
+</div>
+
+<div class='flex flex-col gap-2'>
+<h3>3. 同意</h3>
+<div class='mini-form'>
+<p>foo@example.com さん</p>
+
+このアプリへの情報提供に同意しますか？
+
+- メールアドレス
+
+<div class='self-end flex gap-1'>
+<button>同意する</button>
+<button class='abort'>同意しない</button>
+</div>
+</div>
+<div class='mini-form'>
+
+画面をスキップ  
+(既に同意済み)
+
+</div>
+</div>
+
+</div>
+
+---
+
+# 課題
+
+## 認証基盤の複雑さ: 状態の管理と遷移
+
+例) `prompt=login&subject=bar@example.com` の場合  
+_bar\@example.com_ として _明示的な再認証_ が必要
+
+<div class='flex gap-8'>
+
+<div class='flex flex-col gap-2'>
+<h3>1. アカウント選択</h3>
+<div class='mini-form'>
+<label for='name'>ログインID</label>
+<input type=text id='name' name='name' value='foo@example.com'>
+<button class='self-end'>次へ</button>
+</div>
+<div class='mini-form'>
+<button><mdi-devices />パスキーを使用する</button>
+</div>
+<div class='mini-form'>
+
+画面をスキップ  
+(認証リクエストのパラメータから)
+
+</div>
+<div class='mini-form'>
+
+画面をスキップ  
+(ログインセッションから)
+
+</div>
+</div>
+
+<div class='flex flex-col gap-2'>
+<h3>2. ログイン</h3>
+<div class='mini-form'>
+<label for='name'>ログインID</label>
+bar@example.com (変更不可)
+<label for='password'>パスワード</label>
+<input type=password id='password' name='password' value='xxxxxxxxxxxxxxxx'>
+<div class='self-end flex gap-1'>
+</div>
+<div class='self-end flex gap-1'>
+<button>次へ</button>
+</div>
+</div>
+<div class='mini-form'>
+
+<label for='password'>送信したメールのPINコード</label>
+<input type=password id='password' name='password' value='xxxxxxxxxxxxxxxx'>
+
+</div>
+<div class='mini-form'>
+
+画面をスキップ  
+(有効なログインセッションから)
+
+</div>
+</div>
+
+<div class='flex flex-col gap-2'>
+<h3>3. 同意</h3>
+<div class='mini-form'>
+<p>bar@example.com さん</p>
+
+このアプリへの情報提供に同意しますか？
+
+- メールアドレス
+
+<div class='self-end flex gap-1'>
+<button>同意する</button>
+<button class='abort'>同意しない</button>
+</div>
+</div>
+<div class='mini-form'>
+
+画面をスキップ  
+(既に同意済み)
+
+</div>
+</div>
+
+</div>
+
+---
+
+# 課題
+
+## 状態遷移を適切に処理しなければ...
+
+### 検証漏れ
+
+- ログインセッションの検証漏れ
+
+### 意図しない状態遷移
+
+- 明示的な再認証のし忘れ
+- 二要素認証を要求し忘れて、流出したパスワードだけで患者情報が閲覧できてしまう
+
+### 状態遷移後のハンドリング漏れ
+
+- パスキー認証の場合のみ  
+  監査ログを記録し忘れてしまう
+
+---
+
+# 提案
+
+## データと振る舞いを分離する
+
+## 振る舞いを「イベントを発生させる純粋関数」とする
+
+---
+layout: two-cols-header
+---
+
+# 提案: データと振る舞いを分離する
+
+::left::
+
+### 直積型
+
+複数の型を組み合わせて一つの型を表す型
+
+```ts
+type User = {
+    id: string;
+    name: string;
+    email: string;
+};
+```
 
 ::right::
 
-<Toc v-click minDepth="1" maxDepth="2"></Toc>
+### 直和型
 
----
-layout: image-right
-image: https://cover.sli.dev
----
-
-# Code
-
-Use code snippets and get the highlighting directly, and even types hover![^1]
-
-```ts {all|5|7|7-8|10|all} twoslash
-// TwoSlash enables TypeScript hover information
-// and errors in markdown code blocks
-// More at https://shiki.style/packages/twoslash
-
-import { computed, ref } from 'vue'
-
-const count = ref(0)
-const doubled = computed(() => count.value * 2)
-
-doubled.value = 2
-```
-
-<arrow v-click="[4, 5]" x1="350" y1="310" x2="195" y2="334" color="#953" width="2" arrowSize="1" />
-
-<!-- This allow you to embed external code blocks -->
-<<< @/snippets/external.ts#snippet
-
-<!-- Footer -->
-[^1]: [Learn More](https://sli.dev/guide/syntax.html#line-highlighting)
-
-<!-- Inline style -->
-<style>
-.footnotes-sep {
-  @apply mt-5 opacity-10;
-}
-.footnotes {
-  @apply text-sm opacity-75;
-}
-.footnote-backref {
-  display: none;
-}
-</style>
-
-<!--
-Notes can also sync with clicks
-
-[click] This will be highlighted after the first click
-
-[click] Highlighted with `count = ref(0)`
-
-[click:3] Last click (skip two clicks)
--->
-
----
-level: 2
----
-
-# Shiki Magic Move
-
-Powered by [shiki-magic-move](https://shiki-magic-move.netlify.app/), Slidev supports animations across multiple code snippets.
-
-Add multiple code blocks and wrap them with <code>````md magic-move</code> (four backticks) to enable the magic move. For example:
-
-````md magic-move
-```ts {*|2|*}
-// step 1
-const author = reactive({
-  name: 'John Doe',
-  books: [
-    'Vue 2 - Advanced Guide',
-    'Vue 3 - Basic Guide',
-    'Vue 4 - The Mystery'
-  ]
-})
-```
-
-```ts {*|1-2|3-4|3-4,8}
-// step 2
-export default {
-  data() {
-    return {
-      author: {
-        name: 'John Doe',
-        books: [
-          'Vue 2 - Advanced Guide',
-          'Vue 3 - Basic Guide',
-          'Vue 4 - The Mystery'
-        ]
-      }
-    }
-  }
-}
-```
+複数の型のいずれか一つを表す型
 
 ```ts
-// step 3
-export default {
-  data: () => ({
-    author: {
-      name: 'John Doe',
-      books: [
-        'Vue 2 - Advanced Guide',
-        'Vue 3 - Basic Guide',
-        'Vue 4 - The Mystery'
-      ]
-    }
-  })
-}
+type LoginSession =
+    | { type: "Password"; password: string }
+    | { type: "Passkey"; passkeyId: string }
+    | { type: "EmailPin"; email: string; };
 ```
 
-Non-code blocks are ignored.
+::bottom::
 
-```vue
-<!-- step 4 -->
-<script setup>
-const author = {
-  name: 'John Doe',
-  books: [
-    'Vue 2 - Advanced Guide',
-    'Vue 3 - Basic Guide',
-    'Vue 4 - The Mystery'
-  ]
-}
-</script>
-```
-````
+### 代数的データ型
+
+直積型と直和型の組み合わせ
 
 ---
 
-# Components
+# 提案: データと振る舞いを分離する
 
-<div grid="~ cols-2 gap-4">
-<div>
+## 検証漏れの予防
 
-You can use Vue components directly inside your slides.
+ログインセッションを「検証済」と「未検証」に分ける  
+検証済のログインセッションが必要な処理は「検証済のログインセッション」のみを引数に取る
 
-We have provided a few built-in components like `<Tweet/>` and `<Youtube/>` that you can use directly. And adding your custom components is also super easy.
+```ts
+type BaseLoginSession =
+    | { type: "Password"; password: string }
+    | { type: "Passkey"; passkeyId: string }
+    | { type: "EmailPin"; email: string; };
 
-```html
-<Counter :count="10" />
-```
+type VerifiedLoginSession =
+    & BaseLoginSession
+    & { verified: true; verifiedAt: Date; expiresAt: Date };
 
-<!-- ./components/Counter.vue -->
-<Counter :count="10" m="t-4" />
+type UnverifiedLoginSession =
+    & BaseLoginSession
+    & { verified: false; reason: string; };
 
-Check out [the guides](https://sli.dev/builtin/components.html) for more.
-
-</div>
-<div>
-
-```html
-<Tweet id="1390115482657726468" />
-```
-
-<Tweet id="1390115482657726468" scale="0.65" />
-
-</div>
-</div>
-
-<!--
-Presenter note with **bold**, *italic*, and ~~striked~~ text.
-
-Also, HTML elements are valid:
-<div class="flex w-full">
-  <span style="flex-grow: 1;">Left content</span>
-  <span>Right content</span>
-</div>
--->
-
----
-class: px-20
----
-
-# Themes
-
-Slidev comes with powerful theming support. Themes can provide styles, layouts, components, or even configurations for tools. Switching between themes by just **one edit** in your frontmatter:
-
-<div grid="~ cols-2 gap-2" m="t-2">
-
-```yaml
----
-theme: default
----
-```
-
-```yaml
----
-theme: seriph
----
-```
-
-<img border="rounded" src="https://github.com/slidevjs/themes/blob/main/screenshots/theme-default/01.png?raw=true" alt="">
-
-<img border="rounded" src="https://github.com/slidevjs/themes/blob/main/screenshots/theme-seriph/01.png?raw=true" alt="">
-
-</div>
-
-Read more about [How to use a theme](https://sli.dev/themes/use.html) and
-check out the [Awesome Themes Gallery](https://sli.dev/themes/gallery.html).
-
----
-
-# Clicks Animations
-
-You can add `v-click` to elements to add a click animation.
-
-<div v-click>
-
-This shows up when you click the slide:
-
-```html
-<div v-click>This shows up when you click the slide.</div>
-```
-
-</div>
-
-<br>
-
-<v-click>
-
-The <span v-mark.red="3"><code>v-mark</code> directive</span>
-also allows you to add
-<span v-mark.circle.orange="4">inline marks</span>
-, powered by [Rough Notation](https://roughnotation.com/):
-
-```html
-<span v-mark.underline.orange>inline markers</span>
-```
-
-</v-click>
-
-<div mt-20 v-click>
-
-[Learn More](https://sli.dev/guide/animations#click-animations)
-
-</div>
-
----
-
-# Motions
-
-Motion animations are powered by [@vueuse/motion](https://motion.vueuse.org/), triggered by `v-motion` directive.
-
-```html
-<div
-  v-motion
-  :initial="{ x: -80 }"
-  :enter="{ x: 0 }"
-  :click-3="{ x: 80 }"
-  :leave="{ x: 1000 }"
->
-  Slidev
-</div>
-```
-
-<div class="w-60 relative">
-  <div class="relative w-40 h-40">
-    <img
-      v-motion
-      :initial="{ x: 800, y: -100, scale: 1.5, rotate: -50 }"
-      :enter="final"
-      class="absolute inset-0"
-      src="https://sli.dev/logo-square.png"
-      alt=""
-    />
-    <img
-      v-motion
-      :initial="{ y: 500, x: -100, scale: 2 }"
-      :enter="final"
-      class="absolute inset-0"
-      src="https://sli.dev/logo-circle.png"
-      alt=""
-    />
-    <img
-      v-motion
-      :initial="{ x: 600, y: 400, scale: 2, rotate: 100 }"
-      :enter="final"
-      class="absolute inset-0"
-      src="https://sli.dev/logo-triangle.png"
-      alt=""
-    />
-  </div>
-
-  <div
-    class="text-5xl absolute top-14 left-40 text-[#2B90B6] -z-1"
-    v-motion
-    :initial="{ x: -80, opacity: 0}"
-    :enter="{ x: 0, opacity: 1, transition: { delay: 2000, duration: 1000 } }">
-    Slidev
-  </div>
-</div>
-
-<!-- vue script setup scripts can be directly used in markdown, and will only affects current page -->
-<script setup lang="ts">
-const final = {
-  x: 0,
-  y: 0,
-  rotate: 0,
-  scale: 1,
-  transition: {
-    type: 'spring',
-    damping: 10,
-    stiffness: 20,
-    mass: 2
-  }
-}
-</script>
-
-<div
-  v-motion
-  :initial="{ x:35, y: 30, opacity: 0}"
-  :enter="{ y: 0, opacity: 1, transition: { delay: 3500 } }">
-
-[Learn More](https://sli.dev/guide/animations.html#motion)
-
-</div>
-
----
-
-# LaTeX
-
-LaTeX is supported out-of-box powered by [KaTeX](https://katex.org/).
-
-<br>
-
-Inline $\sqrt{3x-1}+(1+x)^2$
-
-Block
-$$ {1|3|all}
-\begin{array}{c}
-
-\nabla \times \vec{\mathbf{B}} -\, \frac1c\, \frac{\partial\vec{\mathbf{E}}}{\partial t} &
-= \frac{4\pi}{c}\vec{\mathbf{j}}    \nabla \cdot \vec{\mathbf{E}} & = 4 \pi \rho \\
-
-\nabla \times \vec{\mathbf{E}}\, +\, \frac1c\, \frac{\partial\vec{\mathbf{B}}}{\partial t} & = \vec{\mathbf{0}} \\
-
-\nabla \cdot \vec{\mathbf{B}} & = 0
-
-\end{array}
-$$
-
-<br>
-
-[Learn more](https://sli.dev/guide/syntax#latex)
-
----
-
-# Diagrams
-
-You can create diagrams / graphs from textual descriptions, directly in your Markdown.
-
-<div class="grid grid-cols-4 gap-5 pt-4 -mb-6">
-
-```mermaid {scale: 0.5, alt: 'A simple sequence diagram'}
-sequenceDiagram
-    Alice->John: Hello John, how are you?
-    Note over Alice,John: A typical interaction
-```
-
-```mermaid {theme: 'neutral', scale: 0.8}
-graph TD
-B[Text] --> C{Decision}
-C -->|One| D[Result 1]
-C -->|Two| E[Result 2]
-```
-
-```mermaid
-mindmap
-  root((mindmap))
-    Origins
-      Long history
-      ::icon(fa fa-book)
-      Popularisation
-        British popular psychology author Tony Buzan
-    Research
-      On effectiveness<br/>and features
-      On Automatic creation
-        Uses
-            Creative techniques
-            Strategic planning
-            Argument mapping
-    Tools
-      Pen and paper
-      Mermaid
-```
-
-```plantuml {scale: 0.7}
-@startuml
-
-package "Some Group" {
-  HTTP - [First Component]
-  [Another Component]
-}
-
-node "Other Groups" {
-  FTP - [Second Component]
-  [First Component] --> FTP
-}
-
-cloud {
-  [Example 1]
-}
-
-database "MySql" {
-  folder "This is my folder" {
-    [Folder 3]
-  }
-  frame "Foo" {
-    [Frame 4]
-  }
-}
-
-[Another Component] --> [Example 1]
-[Example 1] --> [Folder 3]
-[Folder 3] --> [Frame 4]
-
-@enduml
-```
-
-</div>
-
-[Learn More](https://sli.dev/guide/syntax.html#diagrams)
-
----
-foo: bar
-dragPos:
-  square: 691,33,167,_,-16
----
-
-# Draggable Elements
-
-Double-click on the draggable elements to edit their positions.
-
-<br>
-
-###### Directive Usage
-
-```md
-<img v-drag="'square'" src="https://sli.dev/logo.png">
-```
-
-<br>
-
-###### Component Usage
-
-```md
-<v-drag text-3xl>
-  <carbon:arrow-up />
-  Use the `v-drag` component to have a draggable container!
-</v-drag>
-```
-
-<v-drag pos="671,205,253,_,-15">
-  <div text-center text-3xl border border-main rounded>
-    Double-click me!
-  </div>
-</v-drag>
-
-<img v-drag="'square'" src="https://sli.dev/logo.png">
-
----
-src: ./pages/multiple-entries.md
-hide: false
----
-
----
-
-# Monaco Editor
-
-Slidev provides built-in Monaco Editor support.
-
-Add `{monaco}` to the code block to turn it into an editor:
-
-```ts {monaco}
-import { ref } from 'vue'
-import { emptyArray } from './external'
-
-const arr = ref(emptyArray(10))
-```
-
-Use `{monaco-run}` to create an editor that can execute the code directly in the slide:
-
-```ts {monaco-run}
-import { version } from 'vue'
-import { emptyArray, sayHello } from './external'
-
-sayHello()
-console.log(`vue ${version}`)
-console.log(emptyArray<number>(10).reduce(fib => [...fib, fib.at(-1)! + fib.at(-2)!], [1, 1]))
+type LoginSession = VerifiedLoginSession | UnverifiedLoginSession;
 ```
 
 ---
-layout: center
-class: text-center
+
+# 提案: データと振る舞いを分離する
+
+## 状態の表現
+
+```ts
+type LoggedIn =
+  & { kind: "LoggedIn"; loggedInAt: Date; }
+  & (
+    | { type: "ByPassword"; userId: string; }
+    | { type: "ByPasskey"; passkeyId: string; }
+    | { type: "ByEmailPin"; email: string; }
+  )
+
+type AccountSelected =
+  & { kind: "AccountSelected"; selectedAt: Date; }
+  & (
+    | { type: "ByLoginSession"; loginSession: VerifiedLoginSession; }
+    | { type: "BySubject"; subject: string; }
+    | { type: "ByPasskey"; passkeyId: string; }
+  );
+```
+
 ---
-
-# Learn More
-
-[Documentations](https://sli.dev) · [GitHub](https://github.com/slidevjs/slidev) · [Showcases](https://sli.dev/showcases.html)
