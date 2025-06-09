@@ -18,10 +18,13 @@ This shows at the bottom, aligned to the end (bottom) of the grid
 
 <script setup lang="ts">
 const props = defineProps({
-  class: {
+  layoutClass: {
     type: String,
   },
-  layoutClass: {
+  leftClass: {
+    type: String,
+  },
+  rightClass: {
     type: String,
   },
 })
@@ -32,13 +35,13 @@ const props = defineProps({
     <div class="col-header">
       <slot />
     </div>
-    <div class="col-left" :class="props.class">
+    <div class="col-left mb-2" :class="props.leftClass">
       <slot name="left" />
     </div>
-    <div class="col-right" :class="props.class">
+    <div class="col-right mb-2" :class="props.rightClass">
       <slot name="right" />
     </div>
-    <div class="col-bottom" :class="props.class">
+    <div class="col-bottom">
       <slot name="bottom" />
     </div>
   </div>
