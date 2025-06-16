@@ -6,8 +6,17 @@
     background: #ddd;
 }
 
+pre,
+code {
+    border: 1px solid #ccc;
+}
+
+pre code {
+    border: none;
+}
+
 .slidev-layout {
-    @apply text-xl;
+    @apply text-s;
     color: #333333;
 
     p {
@@ -117,28 +126,35 @@
 
 .slidev-layout.cover,
 .slidev-layout.intro {
-    @apply h-full grid text-left;
-    & > div.w-full {
+    @apply h-full grid text-left text-white;
+    /* & > div.w-full {
         background: #fff;
         padding: 32px 32px;
         border-radius: 32px;
         box-shadow: 0 16px 32px rgb(226 194 190 / 50%);
-    }
+    } */
+    background: #1e75bc;
     h1 {
-        @apply text-6xl leading-20;
+        @apply text-6xl leading-20 text-white;
     }
     h2 {
-        @apply text-5xl leading-10 text-neutral-600 font-700;
+        @apply text-5xl leading-10 font-700 text-white;
+    }
+    h3 {
+        @apply text-2xl leading-8 font-400 text-white;
     }
 }
 
 .slidev-layout.fact {
     @apply text-center grid h-full;
     h1 {
-        @apply text-8xl font-700;
+        @apply text-5xl font-700 line-height-[1.5em];
     }
     h1 + p {
         @apply text-2xl font-700;
+    }
+    h2 {
+        @apply text-3xl font-700;
     }
 }
 
@@ -185,7 +201,9 @@ rt {
     opacity: 0;
 }
 
-.default, .two-cols, .two-cols-header {
+.default,
+.two-cols,
+.two-cols-header {
     h1 {
         font-size: 1rem;
     }
@@ -198,11 +216,21 @@ rt {
         @apply m-0;
     }
 
-    input[type=text], input[type=password], input[type=email], input[type=number], textarea, select, button {
+    input[type="text"],
+    input[type="password"],
+    input[type="email"],
+    input[type="number"],
+    textarea,
+    select,
+    button {
         @apply py-0 px-2 rounded-md;
     }
 
-    input[type=text], input[type=password], input[type=email], input[type=number], textarea {
+    input[type="text"],
+    input[type="password"],
+    input[type="email"],
+    input[type="number"],
+    textarea {
         @apply bg-white text-black border border-gray-300 w-full;
     }
 
